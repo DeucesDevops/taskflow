@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: project-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/taskflow}
+    username: ${DB_USER:taskflow}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 3000
+      validation-timeout: 2000
+  jdbc:
+    template:
+      query-timeout: 5s
+  flyway:
+    default-schema: projects
+    schemas: projects
+    create-schemas: true
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+  tomcat:
+    connection-timeout: 5s
+    threads:
+      max: 50
+taskflow:
+  auth-service-url: ${AUTH_SERVICE_URL:http://localhost:3001}

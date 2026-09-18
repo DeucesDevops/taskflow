@@ -1,0 +1,131 @@
+name: taskflow
+
+x-app: &app
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  networks:
+    - backend
+  logging:
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '3'
+
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:051f7b7b3abdd564d5d1bd1e8c4b9c1b6e77087d1dd22020ede611c096a272e0
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: taskflow
+      POSTGRES_USER: taskflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./scripts/setup.sh first}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [backend]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U taskflow -d taskflow']
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+
+  redis:
+    image: redis:7.4-bookworm@sha256:71da9275c5f3fcb97d0fa0c8c5b36cc995327265420f17a04bfd544f458059f7
+    restart: unless-stopped
+    command: [redis-server, --appendonly, 'yes', --appendfsync, everysec]
+    volumes:
+      - redis-data:/data
+    networks: [backend]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+
+  auth-service:
+    <<: *app
+    build: ./auth-service
+    environment:
+      PORT: '3001'
+      DATABASE_URL: postgres://taskflow:${POSTGRES_PASSWORD}@postgres:5432/taskflow
+      REDIS_URL: redis://redis:6379/0
+      DEMO_EMAIL: ${DEMO_EMAIL:-alex@taskflow.local}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-taskflow-local-demo}
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+
+  project-service:
+    <<: *app
+    build: ./project-service
+    environment:
+      PORT: '8080'
+      DATABASE_URL: jdbc:postgresql://postgres:5432/taskflow
+      DB_USER: taskflow
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:3001
+    depends_on:
+      postgres: {condition: service_healthy}
+      auth-service: {condition: service_healthy}
+
+  notification-service:
+    <<: *app
+    build: ./notification-service
+    environment:
+      PORT: '8000'
+      REDIS_URL: redis://redis:6379/0
+      AUTH_SERVICE_URL: http://auth-service:3001
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Run ./scripts/setup.sh first}
+    depends_on:
+      redis: {condition: service_healthy}
+      auth-service: {condition: service_healthy}
+
+  task-service:
+    <<: *app
+    build: ./task-service
+    environment:
+      PORT: '8081'
+      DATABASE_URL: postgres://taskflow:${POSTGRES_PASSWORD}@postgres:5432/taskflow?sslmode=disable
+      AUTH_SERVICE_URL: http://auth-service:3001
+      PROJECT_SERVICE_URL: http://project-service:8080
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+    depends_on:
+      postgres: {condition: service_healthy}
+      project-service: {condition: service_healthy}
+      notification-service: {condition: service_healthy}
+
+  frontend:
+    <<: *app
+    build: ./frontend
+    environment:
+      PORT: '3000'
+      HOSTNAME: 0.0.0.0
+      AUTH_SERVICE_URL: http://auth-service:3001
+      PROJECT_SERVICE_URL: http://project-service:8080
+      TASK_SERVICE_URL: http://task-service:8081
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      SESSION_COOKIE_SECURE: 'false'
+    ports:
+      - '127.0.0.1:${FRONTEND_PORT:-3000}:3000'
+    depends_on:
+      auth-service: {condition: service_healthy}
+      project-service: {condition: service_healthy}
+      task-service: {condition: service_healthy}
+      notification-service: {condition: service_healthy}
+
+networks:
+  backend:
+
+volumes:
+  postgres-data:
+  redis-data:
