@@ -16,7 +16,7 @@ Open **http://localhost:3000**. Sign in with:
 - Email: `alex@taskflow.local`
 - Password: `taskflow-local-demo`
 
-The default demo project is **Platform launch**. Create a task, select its status, and open Activity to see its notification. You can also create a project, search tasks in the current project, and track completion above the board. The responsive sign-in and workspace use a self-hosted font, keyboard focus states, and reduced-motion support. First builds download several language runtimes and take longer than subsequent starts.
+The default demo project is **Platform launch**. Create a task, select its status, and open Activity to see its notification. You can also create a project, search tasks in the current project, and track completion above the board. The responsive sign-in and workspace include light and dark modes, use the device theme on first visit, remember an explicit choice, and provide keyboard focus states and reduced-motion support. First builds download several language runtimes and take longer than subsequent starts.
 
 `setup.sh` creates a git-ignored `.env` with random database and internal API credentials and preserves existing configuration. Alternatively, copy `.env.example` to `.env` and supply your own values. Keep `POSTGRES_PASSWORD` URL-safe because it is used in connection URLs. Set `FRONTEND_PORT` if port 3000 is occupied. If you customize the demo email/password, enter your configured values in the sign-in form. The form's sample credentials stay at their defaults.
 

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "@/lib/client-api";
 import type { User } from "@/lib/types";
 import { Icon } from "./icon";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Login({ onLogin, notice }: { onLogin: (user: User) => void; notice: string }) {
   const [email, setEmail] = useState("alex@taskflow.local");
@@ -30,6 +31,7 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
   }
 
   return <main className="login-page">
+    <ThemeToggle className="login-theme-toggle" />
     <section className="login-brand-panel" aria-label="TaskFlow">
       <div className="brand brand-large">
         <span className="brand-mark"><Icon name="mark" size={29} /></span>

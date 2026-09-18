@@ -8,6 +8,7 @@ import { Icon } from "./icon";
 import { Login } from "./login";
 import { ProjectDialog } from "./project-dialog";
 import { TaskBoard } from "./task-board";
+import { ThemeToggle } from "./theme-toggle";
 
 export function TaskFlowApp() {
   const [user, setUser] = useState<User | null>(null);
@@ -158,7 +159,7 @@ export function TaskFlowApp() {
       <div className="sidebar-bottom"><div className="user-avatar">{user.name.split(" ").map(part => part[0]).slice(0, 2).join("")}</div><div className="user-details"><strong>{user.name}</strong><span>{user.email}</span></div><button className="sidebar-icon-button" aria-label="Sign out" title="Sign out" disabled={signingOut || saving} onClick={signOut}><Icon name="logout" /></button></div>
     </aside>
     <main className="main-workspace" id="workspace">
-      <header className="topbar"><div className="breadcrumb"><span>My workspace</span><span aria-hidden="true"><Icon name="chevron" size={13} /></span><strong>{selectedProject?.name || "Projects"}</strong></div><div className="topbar-actions"><button className="button quiet refresh-button" aria-label="Refresh workspace" onClick={() => setRefreshKey(key => key + 1)} disabled={loadingProjects || loadingTasks || saving}><Icon name="refresh" size={16} /><span>Refresh</span></button><button className={`button quiet ${activityOpen ? "selected" : ""}`} onClick={() => setActivityOpen(open => !open)} aria-expanded={activityOpen} aria-controls="activity-panel"><Icon name="activity" size={17} />Activity</button></div></header>
+      <header className="topbar"><div className="breadcrumb"><span>My workspace</span><span aria-hidden="true"><Icon name="chevron" size={13} /></span><strong>{selectedProject?.name || "Projects"}</strong></div><div className="topbar-actions"><ThemeToggle /><button className="button quiet refresh-button" aria-label="Refresh workspace" onClick={() => setRefreshKey(key => key + 1)} disabled={loadingProjects || loadingTasks || saving}><Icon name="refresh" size={16} /><span>Refresh</span></button><button className={`button quiet ${activityOpen ? "selected" : ""}`} onClick={() => setActivityOpen(open => !open)} aria-expanded={activityOpen} aria-controls="activity-panel"><Icon name="activity" size={17} />Activity</button></div></header>
       <div className={`workspace-content ${activityOpen ? "with-activity" : ""}`}>
         <section className="board-workspace" aria-label="Project workspace">
           {error && <div role="alert" className="error-banner"><p>{error}</p><button className="icon-button" aria-label="Dismiss error" onClick={() => setError("")}><Icon name="close" size={16} /></button></div>}

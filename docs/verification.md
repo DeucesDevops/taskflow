@@ -41,3 +41,7 @@ See the [notification service README](../notification-service/README.md) to run 
 ## Scope of the result
 
 This verifies the local Milestone 1 path, not production deployment or load capacity. Notification delivery remains best-effort HTTP; feeds and sessions are local Redis data. The seeded demo account and initial schema bootstrap choices are documented in the root README. Later milestones have not been started.
+
+## Dark mode update
+
+Verified on 19 September 2026. The frontend TypeScript check, optimized production build, and Docker image rebuild passed. Chrome checks covered light-to-dark and dark-to-light switching, saved preference after reload, the signed-out form, signed-in workspace, task board, activity panel, and create-project dialog. The dark workspace and sign-in were checked at 320 CSS pixels without horizontal page overflow, and the normal browser viewport was restored after testing. Chrome reported no warnings or errors.
