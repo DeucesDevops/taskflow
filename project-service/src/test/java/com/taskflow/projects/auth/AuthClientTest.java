@@ -77,6 +77,50 @@ class AuthClientTest {
         assertStatus(HttpStatus.SERVICE_UNAVAILABLE, () -> client.authenticate("Bearer valid"));
     }
 
+    @Test
+    void acceptsLargerJwtButStillCapsTokenLength() {
+        UUID id = UUID.randomUUID();
+        stub(200, "{\"user\":{\"id\":\"" + id + "\"}}");
+        assertEquals(id, client.authenticate("Bearer " + "a".repeat(1024)));
+        assertStatus(HttpStatus.UNAUTHORIZED, () -> client.authenticate("Bearer " + "a".repeat(4097)));
+    }
+
+    @Test
+    void looksUpMembersUsingEncodedEmailAndForwardedBearer() {
+        UUID id = UUID.randomUUID();
+        AtomicReference<String> query = new AtomicReference<>();
+        AtomicReference<String> forwarded = new AtomicReference<>();
+        server.createContext("/auth/users", exchange -> {
+            query.set(exchange.getRequestURI().getRawQuery());
+            forwarded.set(exchange.getRequestHeaders().getFirst("Authorization"));
+            byte[] body = ("{\"user\":{\"id\":\"" + id + "\",\"name\":\"Alex\",\"email\":\"alex+team@example.test\"}}")
+                .getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        assertEquals(id, client.findUserByEmail("alex+team@example.test", "Bearer valid").id());
+        assertEquals("email=alex%2Bteam%40example.test", query.get());
+        assertEquals("Bearer valid", forwarded.get());
+    }
+
+    @Test
+    void resolvesOwnerByIdAndClassifiesUnknownUsers() {
+        UUID id = UUID.randomUUID();
+        server.createContext("/auth/users/" + id, exchange -> {
+            byte[] body = ("{\"user\":{\"id\":\"" + id + "\",\"name\":\"Owner\",\"email\":\"owner@example.test\"}}")
+                .getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        assertEquals(id, client.findUserById(id, "Bearer valid").id());
+        assertStatus(HttpStatus.NOT_FOUND, () -> client.findUserById(UUID.randomUUID(), "Bearer valid"));
+        assertStatus(HttpStatus.UNAUTHORIZED, () -> client.findUserByEmail("a@example.test", null));
+    }
+
     private void stub(int status, String response) {
         server.createContext("/auth/me", exchange -> {
             byte[] body = response.getBytes(StandardCharsets.UTF_8);

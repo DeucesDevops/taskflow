@@ -4,3 +4,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const { id } = await context.params;
   return validId(id) ? proxy(request, "projects", `/projects/${id}`) : json({ error: "Invalid project ID." }, 400);
 }
+
+export const PATCH = GET;
+export const DELETE = GET;

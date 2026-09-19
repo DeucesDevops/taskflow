@@ -1,12 +1,16 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import pg from 'pg';
 import { createClient } from 'redis';
 import { hashPassword } from './password.js';
+import { migrate } from './migrations.js';
+import { SESSION_SECONDS } from './token.js';
 
 export type User = { id: string; name: string; email: string };
 export type StoredUser = User & { passwordHash: string };
 export interface Store {
   findUser(email: string): Promise<StoredUser | undefined>;
+  findUserById(id: string): Promise<User | undefined>;
+  createUser(user: Omit<StoredUser, 'id'>): Promise<User | undefined>;
   saveSession(token: string, user: User): Promise<void>;
   getSession(token: string): Promise<User | null>;
   deleteSession(token: string): Promise<void>;
@@ -26,24 +30,36 @@ export async function connectStore(config: {
     socket: { connectTimeout: 3000, reconnectStrategy: retries => Math.min(100 * 2 ** retries, 3000) } });
   redis.on('error', () => console.error('Redis connection unavailable'));
   pool.on('error', () => console.error('PostgreSQL connection unavailable'));
-  await redis.connect();
-  await pool.query(`CREATE SCHEMA IF NOT EXISTS auth;
-    CREATE TABLE IF NOT EXISTS auth.users (
-      id UUID PRIMARY KEY, name VARCHAR(100) NOT NULL, email VARCHAR(254) UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )`);
-  await pool.query(`INSERT INTO auth.users (id,name,email,password_hash)
-    VALUES ($1,$2,$3,$4) ON CONFLICT (id) DO UPDATE
-    SET name=excluded.name,email=excluded.email,password_hash=excluded.password_hash`,
-    ['11111111-1111-4111-8111-111111111111', 'Alex Morgan', config.demoEmail.toLowerCase(), await hashPassword(config.demoPassword)]);
+  try {
+    await redis.connect();
+    await migrate(pool);
+    // Bootstrap only: subsequent starts must preserve edited names, emails and passwords.
+    await pool.query(`INSERT INTO auth.users (id,name,email,password_hash)
+      VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+      ['11111111-1111-4111-8111-111111111111', 'Alex Morgan', config.demoEmail.trim().toLowerCase(),
+        await hashPassword(config.demoPassword)]);
+  } catch (error) {
+    if (redis.isOpen) redis.destroy();
+    await pool.end();
+    throw error;
+  }
 
   const store: Store = {
     async findUser(email) {
       const result = await pool.query<StoredUser>(
-        'SELECT id,name,email,password_hash AS "passwordHash" FROM auth.users WHERE email=$1', [email]);
+        'SELECT id,name,email,password_hash AS "passwordHash" FROM auth.users WHERE lower(email)=$1', [email]);
       return result.rows[0];
     },
-    async saveSession(token, user) { await redis.set(sessionKey(token), JSON.stringify(user), { EX: 86400 }); },
+    async findUserById(id) {
+      return (await pool.query<User>('SELECT id,name,email FROM auth.users WHERE id=$1', [id])).rows[0];
+    },
+    async createUser(user) {
+      const result = await pool.query<User>(`INSERT INTO auth.users (id,name,email,password_hash)
+        VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING id,name,email`,
+      [randomUUID(), user.name, user.email, user.passwordHash]);
+      return result.rows[0];
+    },
+    async saveSession(token, user) { await redis.set(sessionKey(token), JSON.stringify(user), { EX: SESSION_SECONDS }); },
     async getSession(token) {
       const value = await redis.get(sessionKey(token));
       return value ? JSON.parse(value) as User : null;

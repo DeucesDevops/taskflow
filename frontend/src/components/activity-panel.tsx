@@ -2,6 +2,8 @@ import type { Notification, Project } from "@/lib/types";
 import { Icon } from "./icon";
 
 function describe(item: Notification) {
+  const actions: Record<string, string> = { "task.deleted": "Deleted a task", "task.assigned": "Changed an assignment", "task.commented": "Added a comment" };
+  if (actions[item.type]) return { action: actions[item.type], title: item.message };
   if (item.type === "task.created") return { action: "Created a task", title: item.message.replace(/^Created task: /, "") };
   const match = /^Moved task to (todo|in_progress|done): (.*)$/.exec(item.message);
   const labels: Record<string, string> = { todo: "To do", in_progress: "In progress", done: "Done" };

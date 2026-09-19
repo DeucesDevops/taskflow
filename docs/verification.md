@@ -40,8 +40,22 @@ See the [notification service README](../notification-service/README.md) to run 
 
 ## Scope of the result
 
-This verifies the local Milestone 1 path, not production deployment or load capacity. Notification delivery remains best-effort HTTP; feeds and sessions are local Redis data. The seeded demo account and initial schema bootstrap choices are documented in the root README. Later milestones have not been started.
+This section verifies the original local Milestone 1 path, not production deployment or load capacity. The Milestone 2 results below supersede its former notification and schema-bootstrap limitations.
 
 ## Dark mode update
 
 Verified on 19 September 2026. The frontend TypeScript check, optimized production build, and Docker image rebuild passed. Chrome checks covered light-to-dark and dark-to-light switching, saved preference after reload, the signed-out form, signed-in workspace, task board, activity panel, and create-project dialog. The dark workspace and sign-in were checked at 320 CSS pixels without horizontal page overflow, and the normal browser viewport was restored after testing. Chrome reported no warnings or errors.
+
+## Milestone 2 verification
+
+Verified locally on 19 September 2026 against the preserved Milestone 1 PostgreSQL and Redis volumes. A PostgreSQL dump was captured in the git-ignored `artifacts` directory before applying migrations.
+
+- Auth: build and 12 tests passed. A disposable PostgreSQL/Redis integration run verified legacy data preservation, case-insensitive concurrent registration, JWT expiry/tamper checks, Redis revocation, and repeatable startup.
+- Projects: 30 Maven tests passed. The live stack verified owner/member access, profile lookup, project editing, team management, member task access, outsider isolation, and archival hiding the project from every member.
+- Tasks: race-enabled Go tests and `go vet` passed. A disposable PostgreSQL integration run verified migration preservation, assignments/comments, transaction rollback when event persistence fails, concurrent outbox claims, lease recovery, stale acknowledgement rejection, and retry backoff.
+- Notifications and frontend: Docker builds ran notification API tests, frontend type checking, and the production Next.js build. The browser showed the team workspace, task detail/comments dialog, assignment controls, project/member management, and archival controls in the existing dark theme.
+- `scripts/smoke.py` passed the original workflow. `scripts/milestone2_smoke.py` passed registration, JWT cookies, pagination, editing, team membership, assignment, comments, isolation, notifications, and archival.
+- With the notification container stopped, a task and event committed successfully. The outbox recorded a failed attempt, retained the same event, and delivered it after the notification service restarted.
+- A full `docker compose down` followed by `docker compose up --wait` preserved seven users, nine projects, two memberships, eight tasks, two comments, sixteen delivered outbox entries, and the active session used by the check.
+
+This verifies the local Milestone 2 workflow and recovery semantics. It does not establish Internet-facing security, production load capacity, external email delivery, backups, or managed cloud infrastructure.

@@ -60,6 +60,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       DEMO_EMAIL: ${DEMO_EMAIL:-alex@taskflow.local}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-taskflow-local-demo}
+      JWT_SECRET: ${JWT_SECRET:?Run ./scripts/setup.sh to add the signing secret}
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_healthy}

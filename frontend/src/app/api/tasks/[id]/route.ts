@@ -4,3 +4,5 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   const { id } = await context.params;
   return validId(id) ? proxy(request, "tasks", `/tasks/${id}`) : json({ error: "Invalid task ID." }, 400);
 }
+export const GET = PATCH;
+export const DELETE = PATCH;

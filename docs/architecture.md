@@ -1,4 +1,4 @@
-# Milestone 1 architecture
+# Milestone 2 architecture
 
 ```mermaid
 flowchart TD
@@ -9,7 +9,7 @@ flowchart TD
     Frontend --> Notifications[Python + FastAPI notifications :8000]
     Projects -->|validate session| Auth
     Tasks -->|check project ownership| Projects
-    Tasks -->|task event, internal key| Notifications
+    Tasks -->|transactional outbox worker, internal key| Notifications
     Notifications -->|validate session| Auth
     Auth --> Postgres[(PostgreSQL: auth schema)]
     Projects --> ProjectDB[(PostgreSQL: projects schema)]
@@ -25,8 +25,10 @@ The three database nodes represent service-owned schemas in one local PostgreSQL
 1. A sign-in request reaches auth through the frontend. Auth verifies a salted scrypt password hash and creates a random, 24-hour Redis session. Redis stores only a hash of the opaque bearer token as the key.
 2. The frontend stores the token in an httpOnly, SameSite=Lax cookie and returns the public user. Mutating browser requests must have a matching origin. Local HTTP cookies are not marked Secure; set the frontend option when adding HTTPS.
 3. Projects validate the token with auth and scope all repository operations to that owner. Tasks resolve project access through the project service before returning or changing records.
-4. A task write is committed to PostgreSQL. The task service sends an event to notifications using the internal API key. Failure is logged and does not reverse the task write.
-5. Notifications atomically deduplicate the event ID and prepend it to the user's capped Redis feed. The user's feed API validates their session with auth.
+4. Registration stores a salted password hash. Login and registration issue a signed JWT whose session remains revocable through Redis; legacy Milestone 1 opaque sessions remain valid until expiry.
+5. Project owners manage membership snapshots after the auth service resolves an existing account. Owners and members can collaborate; only owners manage project details, members, and archival.
+6. Each task write and its notification events commit in one PostgreSQL transaction. An outbox worker retries delivery with stable IDs after dependency outages or restarts.
+7. Notifications atomically deduplicate event IDs and prepend them to each recipient's capped Redis feed. The user's feed API validates their session with auth.
 
 ## Operational boundaries
 

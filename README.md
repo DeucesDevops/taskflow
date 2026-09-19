@@ -1,6 +1,6 @@
 # TaskFlow
 
-A local task workspace built with five services in four backend languages. **Milestone 1 only:** sign in, create projects and tasks, move work between statuses, and view task notifications. One Docker Compose command runs the application, PostgreSQL, and Redis.
+A local team task workspace built with five services in four backend languages. **Milestones 1 and 2:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, and receive durable notifications. One Docker Compose command runs the application, PostgreSQL, and Redis.
 
 ## Run locally
 
@@ -27,6 +27,7 @@ Only the frontend is published, bound to `127.0.0.1`. Backend services, PostgreS
 ```sh
 docker compose ps
 python3 scripts/smoke.py
+python3 scripts/milestone2_smoke.py
 docker compose exec -T auth-service node --input-type=module < scripts/check-isolation.mjs
 docker compose logs --tail=100 -f
 # Stop services while keeping data:
@@ -93,12 +94,12 @@ Recorded results are in [the verification notes](docs/verification.md). See each
 
 For startup problems, inspect `docker compose ps` and the failing service's logs. Verify Docker is running, `.env` exists, and your selected frontend port is free. A backend outage produces a failed readiness check and a visible error in the UI; health does not pretend the dependency is available.
 
-## Deliberate Milestone 1 limits
+## Deliberate Milestone 2 limits
 
-This is a working development foundation with production-oriented structure, not a production deployment. There is one seeded demo account, no registration/reset flow, no team membership, and only create/list/status-change operations. Sessions last 24 hours. Notification feeds retain the latest 100 entries and expire after seven days without new events; task-to-notification delivery is best-effort HTTP. A committed task is retained even when notification delivery fails, with the failure logged. Reliable event delivery needs an outbox/queue in a later milestone.
+This is a working development foundation with production-oriented structure, not a production deployment. It supports registration, signed and revocable 24-hour JWT sessions, team membership, project editing/archival, complete task CRUD, assignments, comments, pagination, and activity feeds. Password reset, email verification, invitations for unregistered users, ownership transfer, and fine-grained roles are outside this milestone. Notification feeds retain the latest 100 entries and expire after seven days without new events.
 
-Schemas belong to individual services but use one local database role. The Java service uses Flyway; auth/tasks use idempotent startup SQL for their initial schemas. Future schema changes require versioned migrations. Containers run applications as non-root users, keep secrets outside images, use bounded calls, and shut down gracefully. Production work still includes TLS, managed secrets, per-service database roles, backups, durable event delivery, proper identity/team authorization, and deployment-specific rate limiting.
+Schemas belong to individual services but use one local database role. All PostgreSQL services now use versioned, transactional migrations that preserve Milestone 1 data. Task mutations and notification events commit atomically to a PostgreSQL outbox; a retrying worker delivers at least once and Redis deduplicates stable event IDs. Containers run applications as non-root users, keep secrets outside images, use bounded calls, and shut down gracefully. Production work still includes TLS, managed secrets, per-service database roles, backups, account recovery/verification, outbox retention, and deployment-specific rate limiting.
 
 Dependency lockfiles and explicit runtime versions keep dependency versions consistent; PostgreSQL and Redis images are pinned by digest. Maintain those pins and application dependencies together as security updates become available. No cloud infrastructure or external notification provider is provisioned.
 
-The next stages remain [documented only](docs/roadmap.md): deeper APIs/data modeling, hardening, CI, Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
+The next stages remain [documented](docs/roadmap.md): deeper testing and hardening, CI, Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.

@@ -51,9 +51,20 @@ class APITest(unittest.TestCase):
     def test_ingest_requires_internal_key(self):
         result = self.client.post("/events", json=event())
         self.assertEqual(result.status_code, 401)
+
         self.assertEqual(self.store.events, [])
         result = self.client.post("/events", json=event(), headers={"X-Internal-Key": "wrong"})
         self.assertEqual(result.status_code, 401)
+
+    def test_new_task_event_types_reach_the_authenticated_feed(self):
+        for event_type in ["task.assigned", "task.commented", "task.deleted"]:
+            payload = event()
+            payload["type"] = event_type
+            response = self.client.post("/events", json=payload, headers={"X-Internal-Key": "test-internal-key"})
+            self.assertEqual(response.status_code, 202)
+        feed = self.client.get("/notifications", headers={"Authorization": "Bearer session"}).json()["items"]
+        self.assertEqual([item["type"] for item in feed], ["task.assigned", "task.commented", "task.deleted"])
+        self.assertTrue(all("userId" not in item for item in feed))
 
     def test_user_identity_comes_only_from_auth_service(self):
         payload = event()

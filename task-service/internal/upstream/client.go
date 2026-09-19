@@ -113,3 +113,28 @@ func (c *Client) Notify(ctx context.Context, event task.Event) error {
 	}
 	return nil
 }
+
+// GetMember validates assignment against the project service using the caller's session.
+func (c *Client) GetMember(ctx context.Context, projectID, userID, token string) (task.Member, error) {
+	var member task.Member
+	res, err := c.request(ctx, http.MethodGet, c.ProjectURL+"/projects/"+projectID+"/members/"+userID, token, nil)
+	if err != nil {
+		return member, &Error{503, "Project service unavailable"}
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+	case 404:
+		return member, &Error{400, "Assignee must be a project member"}
+	case 401:
+		return member, &Error{401, "Please sign in"}
+	case 403:
+		return member, &Error{404, "Project not found"}
+	default:
+		return member, &Error{503, "Project service unavailable"}
+	}
+	if err = json.NewDecoder(io.LimitReader(res.Body, 32768)).Decode(&member); err != nil || member.UserID != userID || member.Name == "" {
+		return member, &Error{503, "Project service unavailable"}
+	}
+	return member, nil
+}

@@ -5,6 +5,8 @@ import { Icon } from "./icon";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Login({ onLogin, notice }: { onLogin: (user: User) => void; notice: string }) {
+  const [registering, setRegistering] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("alex@taskflow.local");
   const [password, setPassword] = useState("taskflow-local-demo");
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -18,9 +20,9 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
     setPending(true);
     setError("");
     try {
-      const { user } = await api<{ user: User }>("/auth/login", {
+      const { user } = await api<{ user: User }>(registering ? "/auth/register" : "/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, ...(registering ? { name } : {}) }),
       });
       onLogin(user);
     } catch (error) {
@@ -75,8 +77,8 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
         <div className="login-form-heading">
           <span className="login-form-icon"><Icon name="mark" size={26} /></span>
           <span className="eyebrow">YOUR WORKSPACE</span>
-          <h2 id="signin-title">Welcome back</h2>
-          <p className="muted">Sign in to pick up where you left off.</p>
+          <h2 id="signin-title">{registering ? "Create your account" : "Welcome back"}</h2>
+          <p className="muted">{registering ? "Join your team and start organizing work." : "Sign in to pick up where you left off."}</p>
         </div>
 
         {message && <div id="login-error" role="alert" className="form-error login-error">
@@ -84,6 +86,7 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
           <p>{message}</p>
         </div>}
 
+        {registering && <><label htmlFor="name">Full name</label><input id="name" value={name} onChange={event => setName(event.target.value)} autoComplete="name" required maxLength={100} disabled={pending} /></>}
         <label htmlFor="email">Email address</label>
         <input
           id="email" name="email" type="email" value={email}
@@ -98,7 +101,7 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
           <input
             id="password" name="password" type={passwordVisible ? "text" : "password"} value={password}
             onChange={event => setPassword(event.target.value)}
-            autoComplete="current-password" required maxLength={256} disabled={pending}
+            autoComplete={registering ? "new-password" : "current-password"} minLength={registering ? 12 : 1} required maxLength={256} disabled={pending}
             aria-describedby={message ? "login-error" : undefined}
           />
           <button
@@ -115,11 +118,15 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
         </div>
 
         <button className="button primary login-submit" disabled={pending}>
-          <span className="login-submit-label">{pending ? <><span className="login-spinner" aria-hidden="true" />Signing you in…</> : "Sign in to TaskFlow"}</span>
+          <span className="login-submit-label">{pending ? <><span className="login-spinner" aria-hidden="true" />Please wait…</> : registering ? "Create account" : "Sign in to TaskFlow"}</span>
           {!pending && <Icon name="arrow" size={18} />}
         </button>
 
-        <div className="demo-note">
+        <button type="button" className="button quiet auth-switch" disabled={pending} onClick={() => { setRegistering(!registering); setEmail(""); setPassword(""); setError(""); }}>
+          {registering ? "Already have an account? Sign in" : "New to TaskFlow? Create an account"}
+        </button>
+        {registering && <p className="muted password-hint">Use at least 12 characters for your password.</p>}
+        {!registering && <div className="demo-note">
           <div className="demo-note-heading"><span className="eyebrow">EXPLORE THE LOCAL DEMO</span><span className="demo-ready">Ready to try</span></div>
           <p className="muted">Your demo details are already filled in.</p>
           <dl className="demo-credentials">
@@ -127,7 +134,7 @@ export function Login({ onLogin, notice }: { onLogin: (user: User) => void; noti
             <div><dt>Password</dt><dd><code>taskflow-local-demo</code></dd></div>
           </dl>
           <p className="demo-custom-note">Changed these during setup? Enter your own details above.</p>
-        </div>
+        </div>}
 
         <p className="login-form-footer"><Icon name="board" size={14} />Projects, tasks, and progress. Together.</p>
       </form>

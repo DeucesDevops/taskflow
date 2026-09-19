@@ -2,7 +2,8 @@ import type { Task, TaskStatus } from "@/lib/types";
 import { taskStatuses } from "@/lib/types";
 import { Icon } from "./icon";
 
-export function TaskBoard({ tasks, searching, pending, onStatusChange }: {
+export function TaskBoard({ tasks, searching, pending, onStatusChange, onOpen }: {
+  onOpen: (task: Task) => void;
   tasks: Task[];
   searching: boolean;
   pending: boolean;
@@ -23,7 +24,8 @@ export function TaskBoard({ tasks, searching, pending, onStatusChange }: {
             <span>{searching ? "Try a different search." : status.value === "todo" ? "Add your next task above." : status.value === "in_progress" ? "Move a task here to get going." : "Completed tasks will land here."}</span>
           </div> : column.map(task => <article className="task-card" key={task.id}>
             <div className="task-card-heading"><span className="task-short-id">TF–{task.id.slice(0, 6).toUpperCase()}</span><span className={`task-state-icon ${task.status === "done" ? "is-complete" : ""}`}><Icon name={task.status === "done" ? "check" : "board"} size={15} /></span></div>
-            <h4>{task.title}</h4>
+            <h4><button className="task-title-button" disabled={pending} onClick={() => onOpen(task)}>{task.title}</button></h4>
+            <span className="task-assignee">{task.assigneeName || "Unassigned"}</span>
             <div className="task-card-footer">
               <span className="task-date" title={`Created ${new Date(task.createdAt).toLocaleString()}`}><Icon name="clock" size={13} />{new Date(task.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
               <select aria-label={`Status of ${task.title}`} value={task.status} disabled={pending} onChange={event => onStatusChange(task, event.target.value as TaskStatus)}>
