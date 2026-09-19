@@ -3,6 +3,11 @@ name: taskflow
 x-app: &app
   restart: unless-stopped
   init: true
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  pids_limit: 256
+  stop_grace_period: 20s
   security_opt:
     - no-new-privileges:true
   cap_drop:
@@ -19,6 +24,12 @@ services:
   postgres:
     image: postgres:17-bookworm@sha256:051f7b7b3abdd564d5d1bd1e8c4b9c1b6e77087d1dd22020ede611c096a272e0
     restart: unless-stopped
+    init: true
+    pids_limit: 256
+    mem_limit: 768m
+    cpus: 1.0
+    stop_grace_period: 30s
+    shm_size: 128m
     environment:
       POSTGRES_DB: taskflow
       POSTGRES_USER: taskflow
@@ -38,6 +49,19 @@ services:
   redis:
     image: redis:7.4-bookworm@sha256:71da9275c5f3fcb97d0fa0c8c5b36cc995327265420f17a04bfd544f458059f7
     restart: unless-stopped
+    init: true
+    user: "999:999"
+    read_only: true
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
     command: [redis-server, --appendonly, 'yes', --appendfsync, everysec]
     volumes:
       - redis-data:/data
@@ -54,6 +78,8 @@ services:
   auth-service:
     <<: *app
     build: ./auth-service
+    mem_limit: 256m
+    cpus: 0.5
     environment:
       PORT: '3001'
       DATABASE_URL: postgres://taskflow:${POSTGRES_PASSWORD}@postgres:5432/taskflow
@@ -68,6 +94,8 @@ services:
   project-service:
     <<: *app
     build: ./project-service
+    mem_limit: 512m
+    cpus: 1.0
     environment:
       PORT: '8080'
       DATABASE_URL: jdbc:postgresql://postgres:5432/taskflow
@@ -81,6 +109,8 @@ services:
   notification-service:
     <<: *app
     build: ./notification-service
+    mem_limit: 256m
+    cpus: 0.5
     environment:
       PORT: '8000'
       REDIS_URL: redis://redis:6379/0
@@ -93,6 +123,8 @@ services:
   task-service:
     <<: *app
     build: ./task-service
+    mem_limit: 256m
+    cpus: 0.5
     environment:
       PORT: '8081'
       DATABASE_URL: postgres://taskflow:${POSTGRES_PASSWORD}@postgres:5432/taskflow?sslmode=disable
@@ -108,6 +140,8 @@ services:
   frontend:
     <<: *app
     build: ./frontend
+    mem_limit: 384m
+    cpus: 0.75
     environment:
       PORT: '3000'
       HOSTNAME: 0.0.0.0
@@ -118,6 +152,7 @@ services:
       SESSION_COOKIE_SECURE: 'false'
     ports:
       - '127.0.0.1:${FRONTEND_PORT:-3000}:3000'
+    networks: [backend, ingress]
     depends_on:
       auth-service: {condition: service_healthy}
       project-service: {condition: service_healthy}
@@ -126,6 +161,8 @@ services:
 
 networks:
   backend:
+    internal: true
+  ingress:
 
 volumes:
   postgres-data:

@@ -59,3 +59,16 @@ Verified locally on 19 September 2026 against the preserved Milestone 1 PostgreS
 - A full `docker compose down` followed by `docker compose up --wait` preserved seven users, nine projects, two memberships, eight tasks, two comments, sixteen delivered outbox entries, and the active session used by the check.
 
 This verifies the local Milestone 2 workflow and recovery semantics. It does not establish Internet-facing security, production load capacity, external email delivery, backups, or managed cloud infrastructure.
+
+## Milestone 3 verification
+
+Verified locally on 19 September 2026 using Docker Desktop and Docker Compose on Apple Silicon.
+
+- All five multi-stage application images rebuilt successfully from digest-pinned bases. Their build stages ran 12 auth tests, 30 project-service tests, the task-service Go suite, 6 notification API tests, and 4 frontend API-boundary tests; frontend type checking and its optimized production build also passed.
+- The notification image ran all 8 tests against the real Compose Redis instance, including concurrent deduplication, newest-first ordering, the 100-item feed bound, user separation, and expiration.
+- `scripts/smoke.py`, `scripts/milestone2_smoke.py`, and the cross-user isolation check passed against the hardened stack.
+- The seven-container stack restarted in under one second and returned every service to healthy state. Existing named volumes remained attached.
+- `scripts/verify_container_policy.py` confirmed health, non-root application users, read-only application roots, hardened temporary filesystems, dropped capabilities, `no-new-privileges`, CPU/memory/PID limits, loopback-only published ports, an internal backend network, digest-pinned Dockerfile bases, and no sensitive runtime configuration baked into application images.
+- Docker Scout generated SPDX JSON SBOMs and SARIF reports for all five application images. The policy found no high or critical vulnerability after moving the Node services to distroless runtimes, moving notifications to Alpine Python, updating Tomcat and Go, and removing npm/pip tooling from runtime images. Full reports, including lower-severity findings, remain in the git-ignored `artifacts/security/` directory.
+
+Re-run the build and runtime verification with `./scripts/verify_milestone3.sh`. Run `./scripts/scan_images.sh` separately to regenerate security reports and enforce the vulnerability threshold. These results cover the local containerized development deployment; production identity, TLS, secret delivery, backup/restore, load capacity, and orchestration controls remain later milestones.
