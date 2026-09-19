@@ -36,7 +36,7 @@ export async function bodyText(request: NextRequest): Promise<string> {
     throw new Error("Expected a JSON request.");
   }
   const declaredSize = Number(request.headers.get("content-length") || 0);
-  if (declaredSize > 16_384) throw new Error("The request is too large.");
+  if (declaredSize > 65_536) throw new Error("The request is too large.");
   const reader = request.body?.getReader();
   if (!reader) throw new Error("A request body is required.");
   const chunks: Uint8Array[] = [];
@@ -45,7 +45,7 @@ export async function bodyText(request: NextRequest): Promise<string> {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > 16_384) { await reader.cancel(); throw new Error("The request is too large."); }
+    if (size > 65_536) { await reader.cancel(); throw new Error("The request is too large."); }
     chunks.push(value);
   }
   const body = Buffer.concat(chunks).toString("utf8");
@@ -62,9 +62,9 @@ export async function proxy(request: NextRequest, service: keyof typeof services
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   if (!token) return json({ error: "Please sign in to continue." }, 401);
   let body: string | undefined;
-  if (mutation) {
+  if (mutation && request.method !== "DELETE") {
     try { body = await bodyText(request); }
-    catch { return json({ error: "Please send a valid JSON request under 16 KB." }, 400); }
+    catch { return json({ error: "Please send a valid JSON request under 64 KB." }, 400); }
   }
   try {
     const response = await upstream(service, path, {
@@ -78,6 +78,15 @@ export async function proxy(request: NextRequest, service: keyof typeof services
   } catch {
     return json({ error: "A workspace service is temporarily unavailable. Please try again." }, 503);
   }
+}
+
+export function pagination(request: NextRequest) {
+  const params = new URLSearchParams();
+  for (const key of ["limit", "offset"]) {
+    const value = request.nextUrl.searchParams.get(key);
+    if (value !== null) params.set(key, value);
+  }
+  return params.toString();
 }
 
 export function validId(id: string) {

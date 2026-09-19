@@ -9,7 +9,7 @@ class Event(BaseModel):
 
     id: UUID
     userId: UUID
-    type: Literal["task.created", "task.updated"]
+    type: Literal["task.created", "task.updated", "task.deleted", "task.commented", "task.assigned"]
     message: str = Field(min_length=1, max_length=500)
     taskId: UUID
     projectId: UUID

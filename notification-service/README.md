@@ -2,7 +2,7 @@
 
 Python 3.13 and FastAPI accept internal task events and expose the signed-in user's notification feed. Redis keeps the newest 100 entries per user. The feed expires after seven days without new events; event IDs are deduplicated for seven days. Ingestion uses an atomic Lua script so simultaneous duplicate requests cannot create duplicate entries.
 
-Required environment: `REDIS_URL`, `AUTH_SERVICE_URL`, and `INTERNAL_API_KEY`. The container listens on port 8000. `GET /health` checks liveness; `GET /ready` checks Redis and auth readiness. `POST /events` requires `X-Internal-Key`; `GET /notifications` validates the bearer session through auth. No external email provider is configured in Milestone 1.
+Required environment: `REDIS_URL`, `AUTH_SERVICE_URL`, and `INTERNAL_API_KEY`. The container listens on port 8000. `GET /health` checks liveness; `GET /ready` checks Redis and auth readiness. `POST /events` requires `X-Internal-Key` and accepts `task.created`, `task.updated`, `task.deleted`, `task.commented`, and `task.assigned`; `GET /notifications` validates the bearer session through auth. No external email provider is configured in Milestone 2.
 
 The Docker build runs API tests. To include the real Redis integration tests after the Compose stack is running, from the repository root:
 

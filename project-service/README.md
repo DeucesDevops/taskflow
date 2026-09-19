@@ -1,9 +1,10 @@
 # Project service
 
 Java 21 / Spring Boot 4.1.1 owns project records in the PostgreSQL `projects` schema.
-Flyway creates the schema and seeds the demo project once. Authentication remains in
-the auth service: every project request validates its bearer session through
-`GET /auth/me`, then filters storage by that returned identity.
+Flyway creates the schema and seeds the demo project once. Version 2 adds project
+memberships and soft archives without replacing existing data. Authentication
+remains in the auth service: every project request validates its bearer token
+through `GET /auth/me`, then filters storage by that returned identity.
 
 ## Configuration
 
@@ -23,12 +24,34 @@ and run `mvn spring-boot:run`.
 
 - `GET /health`: process liveness; does not probe dependencies.
 - `GET /ready`: checks PostgreSQL and auth readiness; returns 503 when unavailable.
-- `GET /projects`: projects belonging to the authenticated user.
+- `GET /projects?limit=50&offset=0`: owned and joined active projects, returning
+  `{ "items": [...], "limit": 50, "offset": 0, "hasMore": false }`. Limit is
+  1–100; offset must be non-negative. Order is creation time descending, then ID.
 - `POST /projects`: creates a project from `{ "name": "…", "description": "…" }`.
-- `GET /projects/{id}`: one owned project; 404 also covers projects owned by others.
+- `GET /projects/{id}`: one accessible project. Project responses include `id`,
+  `name`, `description`, `ownerId`, `createdAt`, and the caller's `role` (`owner`
+  or `member`). Inaccessible and archived projects return 404.
+- `PATCH /projects/{id}`: owner updates `name`, `description`, or both. Omitted or
+  null fields keep their existing values; use an empty description to clear it.
+- `DELETE /projects/{id}`: owner archives a project and receives 204. Records and
+  cross-service task references remain stored; subsequent project reads return 404.
+- `GET /projects/{id}/members`: returns `{ "items": [...] }`, including the owner
+  first. Each member contains `userId`, `name`, `email`, and `role`.
+- `POST /projects/{id}/members`: owner adds an existing user by `{ "email": "…" }`.
+  Returns 201 and the member. Re-adding a member refreshes their stored profile
+  without duplicating membership. Adding the owner returns 400.
+- `DELETE /projects/{id}/members/{userId}`: owner removes a member and receives
+  204, or 404 for an absent membership. Removing the owner returns 400.
+- `GET /projects/{id}/members/{userId}`: returns an owner or current member for
+  task assignment validation; the caller must have project access.
 
-Project routes require `Authorization: Bearer <session>`. Authentication timeouts
-and dependency errors return 503; invalid sessions return 401. Public error
+Project routes require `Authorization: Bearer <token>` (up to 4096 token characters).
+Members can read projects and teams; management requests from members return 403.
+Email lookup uses `GET /auth/users?email=...`, and owner profile lookup uses
+`GET /auth/users/{id}`, both with the original bearer token. Member profiles are
+stored when added; ownership comes from the project record and cannot be removed
+through the membership API. Authentication timeouts and dependency errors return
+503; invalid sessions or JWTs return 401. Public error
 responses never include database statements or downstream error bodies.
 
 `project` contains the HTTP controller, validated input, model, and JDBC repository;
@@ -38,8 +61,9 @@ foreign keys.
 
 ## Verification and image
 
-`mvn verify` runs tests covering token forwarding, malformed auth responses,
-authentication failure classification, ownership delegation, and input bounds.
+`mvn verify` runs tests covering token forwarding, encoded email lookups, malformed
+auth responses, authentication failure classification, membership access,
+owner-only management, pagination, and HTTP input validation.
 The Docker build runs the same tests before packaging:
 
 ```sh

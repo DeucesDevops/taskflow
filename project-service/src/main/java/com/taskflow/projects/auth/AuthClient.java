@@ -25,9 +25,7 @@ public class AuthClient {
     }
 
     public UUID authenticate(String authorization) {
-        if (authorization == null || !authorization.matches("(?i)Bearer [^\\s]{1,512}")) {
-            throw unauthorized();
-        }
+        validateAuthorization(authorization);
         try {
             AuthResponse response = client.get().uri("/auth/me")
                 .header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body(AuthResponse.class);
@@ -42,6 +40,46 @@ public class AuthClient {
             throw unavailable();
         } catch (RestClientException error) {
             throw unavailable();
+        }
+    }
+
+    public User findUserByEmail(String email, String authorization) {
+        validateAuthorization(authorization);
+        return resolveUser(() -> client.get().uri(builder -> builder.path("/auth/users")
+            .queryParam("email", "{email}").build(email))
+            .header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body(AuthResponse.class));
+    }
+
+    public User findUserById(UUID id, String authorization) {
+        validateAuthorization(authorization);
+        return resolveUser(() -> client.get().uri("/auth/users/{id}", id)
+            .header(HttpHeaders.AUTHORIZATION, authorization).retrieve().body(AuthResponse.class));
+    }
+
+    private User resolveUser(java.util.function.Supplier<AuthResponse> request) {
+        try {
+            AuthResponse response = request.get();
+            if (response == null || response.user() == null || response.user().id() == null
+                    || response.user().name() == null || response.user().email() == null) {
+                throw unavailable();
+            }
+            return response.user();
+        } catch (RestClientResponseException error) {
+            if (error.getStatusCode().value() == 404) {
+                throw new ApiException(HttpStatus.NOT_FOUND, "User not found.");
+            }
+            if (error.getStatusCode().value() == 401 || error.getStatusCode().value() == 403) {
+                throw unauthorized();
+            }
+            throw unavailable();
+        } catch (RestClientException error) {
+            throw unavailable();
+        }
+    }
+
+    private void validateAuthorization(String authorization) {
+        if (authorization == null || !authorization.matches("(?i)Bearer [^\\s]{1,4096}")) {
+            throw unauthorized();
         }
     }
 

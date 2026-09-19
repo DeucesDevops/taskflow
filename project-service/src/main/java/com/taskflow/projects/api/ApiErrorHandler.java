@@ -26,12 +26,12 @@ public class ApiErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<Map<String, String>> validation() {
-        return response(HttpStatus.BAD_REQUEST, "Name is required (1–120 characters); description must be at most 2000 characters.");
+        return response(HttpStatus.BAD_REQUEST, "Invalid request fields. Check the name, description, or member email.");
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     ResponseEntity<Map<String, String>> invalidInput() {
-        return response(HttpStatus.BAD_REQUEST, "Invalid request body or project ID.");
+        return response(HttpStatus.BAD_REQUEST, "Invalid request body, identifier, or pagination value.");
     }
 
     @ExceptionHandler(DataAccessException.class)
