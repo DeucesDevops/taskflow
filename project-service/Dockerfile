@@ -6,7 +6,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B -q dependency:go-offline
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q verify
 
-FROM eclipse-temurin:21-jre-noble@sha256:7739f0ffce786528961eea6bf46d9610ee968ac6127c9b2e93494757bdecce9f AS runtime
+FROM eclipse-temurin:24-jre-noble@sha256:b416d02335e702b0403ff280de9475a3348e29382285969c9d4e17862ce632e7 AS runtime
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
