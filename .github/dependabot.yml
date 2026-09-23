@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ['*']
@@ -14,6 +16,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       frontend:
         patterns: ['*']
@@ -23,6 +27,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       auth-service:
         patterns: ['*']
@@ -32,6 +38,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       project-service:
         patterns: ['*']
@@ -41,6 +49,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       task-service:
         patterns: ['*']
@@ -50,6 +60,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+    cooldown:
+      default-days: 7
     groups:
       notification-service:
         patterns: ['*']
@@ -58,23 +70,33 @@ updates:
     directory: /frontend
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker
     directory: /auth-service
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker
     directory: /project-service
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker
     directory: /task-service
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker
     directory: /notification-service
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7

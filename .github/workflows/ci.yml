@@ -170,11 +170,20 @@ jobs:
 
   repository-security:
     name: Dependency, secret, and configuration scan
+    needs: project-service
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Restore resolved Maven dependencies
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Populate Maven cache for Trivy
+        run: mvn --batch-mode --no-transfer-progress --file project-service/pom.xml dependency:resolve
       - name: Create report directory
         run: mkdir -p artifacts/security
       - name: Generate repository SARIF report
