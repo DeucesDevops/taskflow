@@ -1,0 +1,102 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      frontend:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /auth-service
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      auth-service:
+        patterns: ['*']
+
+  - package-ecosystem: maven
+    directory: /project-service
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      project-service:
+        patterns: ['*']
+
+  - package-ecosystem: gomod
+    directory: /task-service
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      task-service:
+        patterns: ['*']
+
+  - package-ecosystem: pip
+    directory: /notification-service
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      notification-service:
+        patterns: ['*']
+
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directory: /auth-service
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directory: /project-service
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directory: /task-service
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: docker
+    directory: /notification-service
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7

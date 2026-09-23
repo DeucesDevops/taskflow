@@ -1,6 +1,6 @@
 # TaskFlow
 
-A local team task workspace built with five services in four backend languages. **Milestones 1 and 2:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, and receive durable notifications. One Docker Compose command runs the application, PostgreSQL, and Redis.
+A local team task workspace built with five services in four backend languages. **Milestones 1–4:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, receive durable notifications, run the stack with tested container security controls, and produce tested/scanned container artifacts in CI. One Docker Compose command runs the application, PostgreSQL, and Redis.
 
 ## Run locally
 
@@ -29,6 +29,7 @@ docker compose ps
 python3 scripts/smoke.py
 python3 scripts/milestone2_smoke.py
 docker compose exec -T auth-service node --input-type=module < scripts/check-isolation.mjs
+python3 scripts/verify_container_policy.py
 docker compose logs --tail=100 -f
 # Stop services while keeping data:
 docker compose down
@@ -55,7 +56,7 @@ taskflow/
 └── .env.example              Documented local configuration
 ```
 
-Each service has its own dependencies, lock/version declarations, Dockerfile, runtime configuration, and health checks. Backends have focused tests; the frontend is typechecked, production-built, and exercised by the stack smoke check. There is no shared backend code package or hidden dependency on host language runtimes.
+Each service has its own dependencies, lock/version declarations, Dockerfile, runtime configuration, and health checks. Every image build runs focused tests; the frontend also runs API-boundary tests, type checking, and a production build. There is no shared backend code package or hidden dependency on host language runtimes.
 
 ## Service boundaries
 
@@ -73,18 +74,25 @@ Every app service exposes `/health` for liveness and `/ready` for dependency rea
 
 ## Development and tests
 
-Docker builds compile each app and run its focused tests (the frontend is typechecked and production-built). Rebuild after code changes:
+Docker builds compile each app and run its focused tests. Rebuild and run the complete local Milestone 3 verification after code changes:
 
 ```sh
-docker compose up --build --wait
-python3 scripts/smoke.py
+./scripts/verify_milestone3.sh
 ```
+
+Docker Scout can generate an SPDX SBOM and SARIF vulnerability report for every application image, then fail if any high or critical vulnerability is present:
+
+```sh
+./scripts/scan_images.sh
+```
+
+Reports are written under the git-ignored `artifacts/security/` directory. Docker Scout is included with current Docker Desktop releases and can also be installed as a Docker CLI plugin.
 
 Individual checks with the appropriate runtimes installed:
 
 ```sh
 (cd auth-service && npm ci && npm run build && npm test)
-(cd frontend && npm ci && npm run typecheck && npm run build)
+(cd frontend && npm ci && npm test && npm run typecheck && npm run build)
 (cd project-service && mvn test)
 (cd task-service && go test ./...)
 (cd notification-service && python3.13 -m venv .venv && .venv/bin/pip install --require-hashes -r requirements.txt && .venv/bin/python -m unittest discover -s tests -v)
@@ -92,14 +100,16 @@ Individual checks with the appropriate runtimes installed:
 
 Recorded results are in [the verification notes](docs/verification.md). See each service's package/build manifest for runtime versions. Native runs require the service environment variables in [the API contract](docs/api-contract.md) and reachable backing services; Compose is the supported, fully wired local path.
 
+GitHub Actions now runs language-specific checks, Semgrep SAST, Trivy repository and image gates, SPDX SBOM generation, and full-stack integration against the exact scanned images. Successful `main` and `v*` runs can publish commit-addressed images to the `macroni607` Docker Hub namespace after the `DOCKERHUB_TOKEN` repository secret is configured. See [continuous integration](docs/continuous-integration.md) for the pipeline, reports, optional SonarQube settings, and recommended required checks.
+
 For startup problems, inspect `docker compose ps` and the failing service's logs. Verify Docker is running, `.env` exists, and your selected frontend port is free. A backend outage produces a failed readiness check and a visible error in the UI; health does not pretend the dependency is available.
 
-## Deliberate Milestone 2 limits
+## Deliberate Milestone 4 limits
 
 This is a working development foundation with production-oriented structure, not a production deployment. It supports registration, signed and revocable 24-hour JWT sessions, team membership, project editing/archival, complete task CRUD, assignments, comments, pagination, and activity feeds. Password reset, email verification, invitations for unregistered users, ownership transfer, and fine-grained roles are outside this milestone. Notification feeds retain the latest 100 entries and expire after seven days without new events.
 
-Schemas belong to individual services but use one local database role. All PostgreSQL services now use versioned, transactional migrations that preserve Milestone 1 data. Task mutations and notification events commit atomically to a PostgreSQL outbox; a retrying worker delivers at least once and Redis deduplicates stable event IDs. Containers run applications as non-root users, keep secrets outside images, use bounded calls, and shut down gracefully. Production work still includes TLS, managed secrets, per-service database roles, backups, account recovery/verification, outbox retention, and deployment-specific rate limiting.
+Schemas belong to individual services but use one local database role. All PostgreSQL services use versioned, transactional migrations that preserve Milestone 1 data. Task mutations and notification events commit atomically to a PostgreSQL outbox; a retrying worker delivers at least once and Redis deduplicates stable event IDs. Application containers run as non-root users with read-only roots, dropped capabilities, bounded CPU/memory/process counts, private backend networking, and graceful shutdown periods. Production work still includes TLS, managed secrets, per-service database roles, backups, account recovery/verification, outbox retention, and deployment-specific rate limiting. See [container hardening](docs/container-hardening.md) for the enforced policy and documented infrastructure exceptions.
 
 Dependency lockfiles and explicit runtime versions keep dependency versions consistent; PostgreSQL and Redis images are pinned by digest. Maintain those pins and application dependencies together as security updates become available. No cloud infrastructure or external notification provider is provisioned.
 
-The next stages remain [documented](docs/roadmap.md): deeper testing and hardening, CI, Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
+The CI pipeline publishes application images but does not provision registries, cloud identity, or deployment infrastructure. AWS OIDC, ECR, Terraform state, managed data services, and runtime secrets belong to Milestone 5. The next stages remain [documented](docs/roadmap.md): Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
