@@ -72,3 +72,19 @@ Verified locally on 19 September 2026 using Docker Desktop and Docker Compose on
 - Docker Scout generated SPDX JSON SBOMs and SARIF reports for all five application images. The policy found no high or critical vulnerability after moving the Node services to distroless runtimes, moving notifications to Alpine Python, updating Tomcat and Go, and removing npm/pip tooling from runtime images. Full reports, including lower-severity findings, remain in the git-ignored `artifacts/security/` directory.
 
 Re-run the build and runtime verification with `./scripts/verify_milestone3.sh`. Run `./scripts/scan_images.sh` separately to regenerate security reports and enforce the vulnerability threshold. These results cover the local containerized development deployment; production identity, TLS, secret delivery, backup/restore, load capacity, and orchestration controls remain later milestones.
+
+## Milestone 4 verification
+
+Milestone 4 adds a SHA-pinned GitHub Actions pipeline that validates all five language stacks, performs Semgrep SAST, scans repository dependencies/secrets/configuration with Trivy, builds each production image, generates an SPDX JSON SBOM and SARIF vulnerability report, and rejects high or critical image findings. The workflow exports each image only after its scan passes, loads those exact artifacts for the full local integration suite, and publishes only after integration succeeds.
+
+`scripts/lint_workflows.sh` verifies the workflow with a checksum-pinned actionlint release. The existing Milestone 3 verification remains the local parity check for build, runtime, restart, isolation, and container policy. Docker Hub publication targets the single private repository `macroni607/taskflow`, using service-specific tags, and remains inactive until `DOCKERHUB_TOKEN` is configured in GitHub Actions.
+
+Verified locally on 20 September 2026:
+
+- actionlint accepted the complete workflow without findings.
+- Frontend tests, type checking, and production build passed; all 12 auth tests and its TypeScript build passed; all 30 Java tests passed; Go formatting, vet, race-enabled tests, and build passed; and all 8 Python tests passed with the 2 real-Redis cases skipped in the isolated unit run as designed.
+- The first Trivy repository pass identified `CVE-2026-56852` in indirect `golang.org/x/text v0.29.0`. Updating `x/text` to `v0.39.0` and its compatible `x/sync` dependency made the repeated repository gate clean.
+- `scripts/verify_milestone3.sh` rebuilt all five images and passed both end-to-end suites, cross-user isolation, all 8 notification tests against real Redis, restart recovery, and the container policy.
+- Trivy 0.74.0 found no high or critical vulnerabilities in any of the five final images. Docker Scout independently regenerated all five SPDX/SARIF report sets and passed the same high/critical policy.
+
+Hosted validation is triggered by a `milestone-*` branch push. Docker Hub publication runs only from `main` or a `v*` tag after the repository secret described above is configured.

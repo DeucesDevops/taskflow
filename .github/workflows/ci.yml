@@ -1,0 +1,460 @@
+name: TaskFlow CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - milestone-*
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: taskflow-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 24.21.0
+  GO_VERSION: 1.26.6
+  PYTHON_VERSION: '3.13'
+  TRIVY_VERSION: v0.74.0
+  SYFT_VERSION: v1.52.0
+
+jobs:
+  workflow-lint:
+    name: Workflow lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate GitHub Actions workflows
+        run: ./scripts/lint_workflows.sh
+
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Test
+        run: npm test
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build production bundle
+        run: npm run build
+
+  auth-service:
+    name: Auth service checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: auth-service
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: auth-service/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Type-check
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  project-service:
+    name: Project service checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: project-service
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Test and package
+        run: mvn --batch-mode --no-transfer-progress verify
+
+  task-service:
+    name: Task service checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: task-service
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: task-service/go.sum
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Vet
+        run: go vet ./...
+      - name: Race-enabled tests
+        run: go test -race -count=1 ./...
+      - name: Build
+        run: CGO_ENABLED=0 go build -trimpath -o /tmp/taskflow-task-service ./cmd/server
+
+  notification-service:
+    name: Notification service checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: notification-service
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: notification-service/requirements.txt
+      - name: Install hashed dependencies
+        run: python -m pip install --disable-pip-version-check --require-hashes -r requirements.txt
+      - name: Compile source
+        run: python -m compileall -q app
+      - name: Test
+        run: python -m unittest discover -s tests -v
+
+  sast:
+    name: Semgrep SAST
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install pinned Semgrep
+        run: python -m pip install --disable-pip-version-check semgrep==1.177.0
+      - name: Run blocking SAST rules
+        run: semgrep scan --config p/default --error --metrics=off
+
+  repository-security:
+    name: Dependency, secret, and configuration scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create report directory
+        run: mkdir -p artifacts/security
+      - name: Generate repository SARIF report
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          format: sarif
+          output: artifacts/security/repository.sarif
+          exit-code: '0'
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      - name: Upload repository security report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: repository-security-report
+          path: artifacts/security/repository.sarif
+          if-no-files-found: error
+          retention-days: 14
+      - name: Enforce dependency and repository policy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+  sonarqube:
+    name: SonarQube analysis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Check SonarQube configuration
+        id: sonar-config
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ] && [ -n "$SONAR_PROJECT_KEY" ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'SonarQube is optional until SONAR_TOKEN, SONAR_HOST_URL, and SONAR_PROJECT_KEY are configured.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Set up Java for SonarQube
+        if: steps.sonar-config.outputs.enabled == 'true'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Compile Java input for analysis
+        if: steps.sonar-config.outputs.enabled == 'true'
+        run: mvn --batch-mode --no-transfer-progress -DskipTests package
+        working-directory: project-service
+      - name: Scan with SonarQube Server
+        if: steps.sonar-config.outputs.enabled == 'true' && env.SONAR_ORGANIZATION == ''
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >-
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+      - name: Scan with SonarQube Cloud
+        if: steps.sonar-config.outputs.enabled == 'true' && env.SONAR_ORGANIZATION != ''
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >-
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+
+  containers:
+    name: Container / ${{ matrix.service }}
+    needs:
+      - workflow-lint
+      - frontend
+      - auth-service
+      - project-service
+      - task-service
+      - notification-service
+      - sast
+      - repository-security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - frontend
+          - auth-service
+          - project-service
+          - task-service
+          - notification-service
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build production image
+        env:
+          SERVICE: ${{ matrix.service }}
+          DOCKER_BUILDKIT: '1'
+        run: docker build --tag "taskflow-${SERVICE}:latest" "./${SERVICE}"
+      - name: Create report directory
+        run: mkdir -p artifacts/security
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          image: taskflow-${{ matrix.service }}:latest
+          format: spdx-json
+          output-file: artifacts/security/${{ matrix.service }}.spdx.json
+          syft-version: ${{ env.SYFT_VERSION }}
+          upload-artifact: 'false'
+      - name: Generate image SARIF report
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+          image-ref: taskflow-${{ matrix.service }}:latest
+          format: sarif
+          output: artifacts/security/${{ matrix.service }}.sarif
+          exit-code: '0'
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      - name: Upload SBOM and vulnerability report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: security-${{ matrix.service }}
+          path: artifacts/security
+          if-no-files-found: error
+          retention-days: 30
+      - name: Enforce image vulnerability policy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: ${{ env.TRIVY_VERSION }}
+          image-ref: taskflow-${{ matrix.service }}:latest
+          format: table
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+      - name: Export the tested image
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          set -o pipefail
+          docker save "taskflow-${SERVICE}:latest" | gzip -1 > "${SERVICE}.tar.gz"
+      - name: Upload the tested image
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: container-${{ matrix.service }}
+          path: ${{ matrix.service }}.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  integration:
+    name: Full-stack integration
+    needs: containers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download tested images
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: container-*
+          path: artifacts/images
+          merge-multiple: true
+      - name: Load tested images
+        run: |
+          set -euo pipefail
+          for archive in artifacts/images/*.tar.gz; do
+            gzip -dc "$archive" | docker load
+          done
+      - name: Create local runtime configuration
+        run: ./scripts/setup.sh
+      - name: Start the scanned stack
+        run: docker compose up --detach --no-build --wait
+      - name: Run public API smoke checks
+        run: |
+          python3 scripts/smoke.py
+          python3 scripts/milestone2_smoke.py
+      - name: Run cross-user isolation checks
+        run: docker compose exec -T auth-service node --input-type=module < scripts/check-isolation.mjs
+      - name: Run Redis-backed notification tests
+        run: >-
+          docker run --rm --network taskflow_backend
+          -e NOTIFICATION_TEST_REDIS_URL=redis://redis:6379/0
+          -v "$PWD/notification-service/tests:/tests:ro"
+          taskflow-notification-service
+          python -m unittest discover -s /tests -v
+      - name: Verify runtime hardening
+        run: python3 scripts/verify_container_policy.py
+      - name: Verify restart behavior
+        run: |
+          docker compose restart
+          docker compose up --detach --wait
+          python3 scripts/verify_container_policy.py
+      - name: Capture service logs after a failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+      - name: Remove the integration stack
+        if: always()
+        run: docker compose down --volumes --remove-orphans
+
+  publish:
+    name: Publish immutable Docker Hub images
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      DOCKERHUB_USERNAME: macroni607
+      DOCKERHUB_REPOSITORY: taskflow
+    steps:
+      - name: Check Docker Hub configuration
+        id: registry-config
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo 'Docker Hub publishing is configured but skipped because DOCKERHUB_TOKEN is not set.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Download tested images
+        if: steps.registry-config.outputs.enabled == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: container-*
+          path: artifacts/images
+          merge-multiple: true
+      - name: Load tested images
+        if: steps.registry-config.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+          for archive in artifacts/images/*.tar.gz; do
+            gzip -dc "$archive" | docker load
+          done
+      - name: Log in to Docker Hub
+        if: steps.registry-config.outputs.enabled == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push commit-addressed images
+        if: steps.registry-config.outputs.enabled == 'true'
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA:0:12}"
+          release_tag="${GITHUB_REF_NAME//\//-}"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]] && [[ ! "$release_tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,106}$ ]]; then
+            echo "Release tag cannot be represented safely as a container tag: $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          echo '### Published image digests' >> "$GITHUB_STEP_SUMMARY"
+          for service in frontend auth-service project-service task-service notification-service; do
+            source_image="taskflow-${service}:latest"
+            target_image="${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}"
+            commit_tag="${service}-sha-${short_sha}"
+            docker tag "$source_image" "${target_image}:${commit_tag}"
+            docker push "${target_image}:${commit_tag}"
+            if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+              service_release_tag="${service}-${release_tag}"
+              docker tag "$source_image" "${target_image}:${service_release_tag}"
+              docker push "${target_image}:${service_release_tag}"
+            fi
+            digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${target_image}:${commit_tag}")"
+            echo "- \`${digest}\`" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "Published the exact tested images with service-specific commit tags ending in \`sha-${short_sha}\`." >> "$GITHUB_STEP_SUMMARY"

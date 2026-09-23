@@ -1,6 +1,6 @@
 # TaskFlow
 
-A local team task workspace built with five services in four backend languages. **Milestones 1–3:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, receive durable notifications, and run the stack with tested container security controls. One Docker Compose command runs the application, PostgreSQL, and Redis.
+A local team task workspace built with five services in four backend languages. **Milestones 1–4:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, receive durable notifications, run the stack with tested container security controls, and produce tested/scanned container artifacts in CI. One Docker Compose command runs the application, PostgreSQL, and Redis.
 
 ## Run locally
 
@@ -100,9 +100,11 @@ Individual checks with the appropriate runtimes installed:
 
 Recorded results are in [the verification notes](docs/verification.md). See each service's package/build manifest for runtime versions. Native runs require the service environment variables in [the API contract](docs/api-contract.md) and reachable backing services; Compose is the supported, fully wired local path.
 
+GitHub Actions now runs language-specific checks, Semgrep SAST, Trivy repository and image gates, SPDX SBOM generation, and full-stack integration against the exact scanned images. Successful `main` and `v*` runs can publish commit-addressed images to the `macroni607` Docker Hub namespace after the `DOCKERHUB_TOKEN` repository secret is configured. See [continuous integration](docs/continuous-integration.md) for the pipeline, reports, optional SonarQube settings, and recommended required checks.
+
 For startup problems, inspect `docker compose ps` and the failing service's logs. Verify Docker is running, `.env` exists, and your selected frontend port is free. A backend outage produces a failed readiness check and a visible error in the UI; health does not pretend the dependency is available.
 
-## Deliberate Milestone 3 limits
+## Deliberate Milestone 4 limits
 
 This is a working development foundation with production-oriented structure, not a production deployment. It supports registration, signed and revocable 24-hour JWT sessions, team membership, project editing/archival, complete task CRUD, assignments, comments, pagination, and activity feeds. Password reset, email verification, invitations for unregistered users, ownership transfer, and fine-grained roles are outside this milestone. Notification feeds retain the latest 100 entries and expire after seven days without new events.
 
@@ -110,4 +112,4 @@ Schemas belong to individual services but use one local database role. All Postg
 
 Dependency lockfiles and explicit runtime versions keep dependency versions consistent; PostgreSQL and Redis images are pinned by digest. Maintain those pins and application dependencies together as security updates become available. No cloud infrastructure or external notification provider is provisioned.
 
-The next stages remain [documented](docs/roadmap.md): CI, Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
+The CI pipeline publishes application images but does not provision registries, cloud identity, or deployment infrastructure. AWS OIDC, ECR, Terraform state, managed data services, and runtime secrets belong to Milestone 5. The next stages remain [documented](docs/roadmap.md): Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
