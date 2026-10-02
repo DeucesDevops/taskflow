@@ -1,4 +1,6 @@
-# Milestone 2 architecture
+# TaskFlow architecture
+
+![TaskFlow application data flow](taskflow-data-flow.svg)
 
 ```mermaid
 flowchart TD
@@ -9,7 +11,8 @@ flowchart TD
     Frontend --> Notifications[Python + FastAPI notifications :8000]
     Projects -->|validate session| Auth
     Tasks -->|check project ownership| Projects
-    Tasks -->|transactional outbox worker, internal key| Notifications
+    Tasks -->|transactional outbox publisher| RabbitMQ[(RabbitMQ)]
+    RabbitMQ -->|durable event consumer| Notifications
     Notifications -->|validate session| Auth
     Auth --> Postgres[(PostgreSQL: auth schema)]
     Projects --> ProjectDB[(PostgreSQL: projects schema)]
@@ -27,8 +30,8 @@ The three database nodes represent service-owned schemas in one local PostgreSQL
 3. Projects validate the token with auth and scope all repository operations to that owner. Tasks resolve project access through the project service before returning or changing records.
 4. Registration stores a salted password hash. Login and registration issue a signed JWT whose session remains revocable through Redis; legacy Milestone 1 opaque sessions remain valid until expiry.
 5. Project owners manage membership snapshots after the auth service resolves an existing account. Owners and members can collaborate; only owners manage project details, members, and archival.
-6. Each task write and its notification events commit in one PostgreSQL transaction. An outbox worker retries delivery with stable IDs after dependency outages or restarts.
-7. Notifications atomically deduplicate event IDs and prepend them to each recipient's capped Redis feed. The user's feed API validates their session with auth.
+6. Each task write and its notification events commit in one PostgreSQL transaction. An outbox worker publishes persistent messages to RabbitMQ with publisher confirmations and retries stable event IDs after dependency outages or restarts.
+7. The notification service acknowledges a RabbitMQ message only after Redis atomically deduplicates its event ID and prepends it to the recipient's capped feed. The user's feed API validates their session with auth.
 
 ## Operational boundaries
 
@@ -36,4 +39,4 @@ Each app runs one foreground process per container with a non-root identity, min
 
 `/health` answers whether the process can respond. `/ready` also probes required dependencies; Docker healthchecks use readiness. Startup ordering reduces dependency races; timeouts and safe error responses handle later failures. Compose restarts crashed processes, but does not restart merely unhealthy containers. Investigate logs rather than assuming a green process means its dependencies work.
 
-The local network is private to Compose by default, with only localhost:3000 published. Redis has no public port and serves this development stack only. All schemas share one database role in this milestone. The static demo identity, fixed sign-in defaults, and local HTTP transport are explicit development choices.
+The local network is private to Compose by default. The frontend, PostgreSQL development port, and RabbitMQ management console are loopback-only; Redis and the AMQP port are not published. All schemas share one database role in this milestone. The static demo identity, fixed sign-in defaults, and local HTTP transport are explicit development choices.

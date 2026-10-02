@@ -45,12 +45,8 @@ try {
   const ownerTasks = (await (await call(tasks, `/tasks?projectId=${projectId}`, ownerSession)).json()).items;
   assert.equal(ownerTasks.find(task => task.id === ownerTask).status, 'todo');
   assert.deepEqual((await (await call(notifications, '/notifications', session)).json()).items, []);
-  const noKey = await call(notifications, '/events', null, 'POST', {
-    id: randomUUID(), userId, type: 'task.created', message: 'Unauthorized event',
-    taskId: randomUUID(), projectId, createdAt: new Date().toISOString(),
-  });
-  assert.ok([401, 403].includes(noKey.status), `Internal events accepted without key: ${noKey.status}`);
-  console.log('PASS: cross-user project/task/feed isolation; task write rejected; internal event authorization');
+  assert.equal((await call(notifications, '/events', null, 'POST', {})).status, 404);
+  console.log('PASS: cross-user project/task/feed isolation; task write rejected; no HTTP event ingestion');
 } finally {
   if (session) await call(auth, '/auth/logout', session, 'POST');
   if (ownerSession) await call(auth, '/auth/logout', ownerSession, 'POST');

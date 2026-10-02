@@ -30,14 +30,14 @@ Internal backend ports: auth 3001, projects 8080, tasks 8081, notifications 8000
 - Verify project membership through project-service before every read/write and validate assignments against current membership.
 - DATABASE_URL=postgres://taskflow:PASSWORD@postgres:5432/taskflow?sslmode=disable. Own schema tasks.
 - PROJECT_SERVICE_URL=http://project-service:8080.
-- NOTIFICATION_SERVICE_URL=http://notification-service:8000.
-- Store each mutation and its events atomically in PostgreSQL. A leased outbox worker retries with exponential backoff until POST /events returns 202.
+- RABBITMQ_URL=amqp://taskflow:password@rabbitmq:5672/ and RABBITMQ_QUEUE=taskflow.notifications.
+- Store each mutation and its events atomically in PostgreSQL. A leased outbox worker publishes persistent messages with publisher confirms and retries with exponential backoff.
 - Event body {id:UUID,userId:UUID,type:"task.created"|"task.updated"|"task.deleted"|"task.commented"|"task.assigned",message:string,taskId:UUID,projectId:UUID,createdAt:ISO8601}.
 
 ## Notifications
-- POST /events (internal key required) -> 202; writes to Redis list per user (max 100, 7-day TTL), idempotent event ID.
 - GET /notifications (bearer token, validate with auth) -> items [{id,type,message,taskId,projectId,createdAt}], newest first.
-- REDIS_URL=redis://redis:6379/0. INTERNAL_API_KEY environment required.
+- Consume task events from the durable RabbitMQ queue, then write to the Redis list per user (max 100, 7-day TTL), idempotent by event ID.
+- REDIS_URL=redis://redis:6379/0. RABBITMQ_URL and RABBITMQ_QUEUE are required.
 
 ## Frontend proxy
 - /api/auth/register and /api/auth/login set an httpOnly SameSite=Lax session cookie and return only `{user}`; never expose the bearer token to browser JavaScript.

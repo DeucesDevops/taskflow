@@ -36,7 +36,7 @@ The complete build and runtime path is:
 ./scripts/verify_milestone3.sh
 ```
 
-That command builds the images, starts the stack, runs both end-to-end suites and the cross-user isolation check, runs the notification tests against real Redis, restarts all seven containers, waits for readiness, and evaluates the container policy.
+That command builds the images, starts the stack, runs both end-to-end suites and the cross-user isolation check, runs the notification tests against real Redis, restarts all eight containers, waits for readiness, and evaluates the container policy.
 
 ## SBOM and vulnerability policy
 

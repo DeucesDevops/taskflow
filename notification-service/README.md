@@ -1,8 +1,8 @@
 # Notification service
 
-Python 3.13 and FastAPI accept internal task events and expose the signed-in user's notification feed. Redis keeps the newest 100 entries per user. The feed expires after seven days without new events; event IDs are deduplicated for seven days. Ingestion uses an atomic Lua script so simultaneous duplicate requests cannot create duplicate entries.
+Python 3.13 and FastAPI consume task events from RabbitMQ and expose the signed-in user's notification feed. Redis keeps the newest 100 entries per user. The feed expires after seven days without new events; event IDs are deduplicated for seven days. Ingestion uses an atomic Lua script so simultaneous redelivery cannot create duplicate entries.
 
-Required environment: `REDIS_URL`, `AUTH_SERVICE_URL`, and `INTERNAL_API_KEY`. The container listens on port 8000. `GET /health` checks liveness; `GET /ready` checks Redis and auth readiness. `POST /events` requires `X-Internal-Key` and accepts `task.created`, `task.updated`, `task.deleted`, `task.commented`, and `task.assigned`; `GET /notifications` validates the bearer session through auth. No external email provider is configured in Milestone 2.
+Required environment: `REDIS_URL`, `AUTH_SERVICE_URL`, `RABBITMQ_URL`, and `RABBITMQ_QUEUE`. The container listens on port 8000. `GET /health` checks liveness; `GET /ready` checks Redis, RabbitMQ, and auth readiness. The RabbitMQ consumer accepts `task.created`, `task.updated`, `task.deleted`, `task.commented`, and `task.assigned`; it acknowledges only after Redis stores the event. `GET /notifications` validates the bearer session through auth. Event ingestion is not exposed over HTTP.
 
 The Docker build runs API tests. To include the real Redis integration tests after the Compose stack is running, from the repository root:
 

@@ -16,8 +16,8 @@ APP_SERVICES = (
     "notification-service",
     "frontend",
 )
-ALL_SERVICES = ("postgres", "redis", *APP_SERVICES)
-SENSITIVE_ENV = {"POSTGRES_PASSWORD", "JWT_SECRET", "INTERNAL_API_KEY", "DB_PASSWORD", "DATABASE_URL"}
+ALL_SERVICES = ("postgres", "redis", "rabbitmq", *APP_SERVICES)
+SENSITIVE_ENV = {"POSTGRES_PASSWORD", "RABBITMQ_PASSWORD", "JWT_SECRET", "DB_PASSWORD", "DATABASE_URL"}
 
 
 def run(*args: str) -> str:

@@ -1,0 +1,19 @@
+# Values for the maintained F5 NGINX Ingress Controller (not retired ingress-nginx).
+# Install release taskflow-nginx in namespace nginx-ingress. Chart 2.7.3 then
+# renders Service taskflow-nginx-nginx-ingress-controller, used by the ALB Ingress.
+controller:
+  ingressClass:
+    name: nginx
+    create: true
+    setAsDefaultIngress: false
+  watchNamespace: taskflow
+  enableCustomResources: false
+  healthStatus: true
+  healthStatusURI: /nginx-health
+  reportIngressStatus:
+    enable: false
+  service:
+    type: NodePort
+    externalTrafficPolicy: Cluster
+    httpsPort:
+      enable: false
