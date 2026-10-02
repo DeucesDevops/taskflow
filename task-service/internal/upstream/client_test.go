@@ -12,7 +12,7 @@ import (
 func TestAuthFailureIsNotTreatedAsInvalidCredentials(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(503) }))
 	defer upstream.Close()
-	c := New(upstream.URL, upstream.URL, upstream.URL, "internal")
+	c := New(upstream.URL, upstream.URL)
 	_, err := c.Authenticate(context.Background(), "Bearer token")
 	var failure *Error
 	if !errors.As(err, &failure) || failure.Status != 503 {
@@ -25,7 +25,7 @@ func TestBearerTokenNotForwardedAcrossRedirects(t *testing.T) {
 	defer target.Close()
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, target.URL, 302) }))
 	defer upstream.Close()
-	c := New(upstream.URL, upstream.URL, upstream.URL, "internal")
+	c := New(upstream.URL, upstream.URL)
 	_, err := c.Authenticate(context.Background(), "Bearer secret")
 	if err == nil || called {
 		t.Fatal("redirect followed or succeeded")
@@ -34,7 +34,7 @@ func TestBearerTokenNotForwardedAcrossRedirects(t *testing.T) {
 func TestDependencyRequestHasBoundedTimeout(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { time.Sleep(50 * time.Millisecond); w.WriteHeader(200) }))
 	defer upstream.Close()
-	c := New(upstream.URL, upstream.URL, upstream.URL, "internal")
+	c := New(upstream.URL, upstream.URL)
 	c.HTTP.Timeout = 5 * time.Millisecond
 	started := time.Now()
 	err := c.CheckProject(context.Background(), "22222222-2222-4222-8222-222222222222", "Bearer test")
@@ -56,7 +56,7 @@ func TestAssigneeLookupForwardsSessionAndRejectsNonmembers(t *testing.T) {
 				w.Write([]byte(`{"userId":"` + user + `","name":"Colleague","email":"c@example.com","role":"member"}`))
 			}
 		}))
-		client := New(server.URL, server.URL, server.URL, "internal")
+		client := New(server.URL, server.URL)
 		member, err := client.GetMember(context.Background(), project, user, "Bearer session")
 		server.Close()
 		if status == 200 {
@@ -80,7 +80,7 @@ func TestMemberLookupFailsClosedForWrongUser(t *testing.T) {
 		w.Write([]byte(`{"userId":"44444444-4444-4444-8444-444444444444","name":"Wrong user"}`))
 	}))
 	defer server.Close()
-	client := New(server.URL, server.URL, server.URL, "internal")
+	client := New(server.URL, server.URL)
 	if _, err := client.GetMember(context.Background(), "22222222-2222-4222-8222-222222222222", "11111111-1111-4111-8111-111111111111", "Bearer session"); err == nil {
 		t.Fatal("wrong member accepted")
 	}

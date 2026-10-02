@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1120" role="img" aria-labelledby="title desc">
+  <title id="title">TaskFlow application data flow</title>
+  <desc id="desc">Browser requests pass through the Next.js frontend to four backend APIs. Auth, Projects, and Tasks use PostgreSQL. Auth and Notifications use Redis. Task events move from a PostgreSQL outbox through a Tasks publisher and RabbitMQ to Notifications and Redis.</desc>
+  <defs>
+    <marker id="blue-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#2563eb"/></marker>
+    <marker id="green-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#15956a"/></marker>
+    <marker id="purple-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#8b5cf6"/></marker>
+    <style>
+      .background{fill:#f7f9fc}.lane{fill:#fff;stroke:#dce4ee;stroke-width:2}.card{fill:#fff;stroke:#b9c9da;stroke-width:2}.blue-card{fill:#eff6ff;stroke:#8cb4f6;stroke-width:2}.green-card{fill:#e9f9f2;stroke:#84ceb0;stroke-width:2}.purple-card{fill:#f5f0ff;stroke:#c4a9fb;stroke-width:2}
+      .ink{fill:#15283f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}.muted{fill:#4b6077;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+      .title{font-size:38px;font-weight:750}.subtitle{font-size:19px}.lane-title{font-size:22px;font-weight:720}.card-title{font-size:21px;font-weight:700}.copy{font-size:16px}.badge{font-size:18px;font-weight:680}.small{font-size:15px}
+      .blue-line{fill:none;stroke:#2563eb;stroke-width:4;stroke-linecap:round}.green-line{fill:none;stroke:#15956a;stroke-width:4;stroke-linecap:round}.purple-line{fill:none;stroke:#8b5cf6;stroke-width:4;stroke-linecap:round}
+    </style>
+  </defs>
+  <rect class="background" width="1680" height="1120"/>
+  <text class="ink title" x="70" y="67">TaskFlow: how data moves</text>
+  <text class="muted subtitle" x="70" y="102">One Compose stack · eight containers · one PostgreSQL instance</text>
+  <path class="blue-line" d="M1100 55h40"/><text class="muted small" x="1155" y="61">HTTP</text>
+  <path class="green-line" d="M1235 55h40"/><text class="muted small" x="1290" y="61">storage</text>
+  <path class="purple-line" d="M1395 55h40"/><text class="muted small" x="1450" y="61">queue events</text>
+
+  <rect class="lane" x="45" y="135" width="1590" height="255" rx="22"/>
+  <text class="ink lane-title" x="70" y="178">1  Browser requests</text>
+  <text class="muted small" x="70" y="202">The frontend is the only browser-facing service; it proxies API calls to the internal backend.</text>
+  <rect class="blue-card" x="70" y="235" width="180" height="115" rx="16"/>
+  <text class="ink card-title" x="160" y="280" text-anchor="middle">Browser</text>
+  <text class="muted copy" x="160" y="310" text-anchor="middle">TaskFlow UI</text>
+  <path class="blue-line" d="M250 292h64"/><path d="M320 292l-12-7v14z" fill="#2563eb"/>
+  <rect class="blue-card" x="330" y="235" width="240" height="115" rx="16"/>
+  <text class="ink card-title" x="450" y="280" text-anchor="middle">Next.js frontend</text>
+  <text class="muted copy" x="450" y="310" text-anchor="middle">pages + API proxy</text>
+  <path class="blue-line" d="M570 292h69"/><path d="M645 292l-12-7v14z" fill="#2563eb"/>
+  <rect class="card" x="655" y="210" width="950" height="155" rx="18"/>
+  <text class="muted small" x="680" y="234">INTERNAL BACKEND APIS</text>
+  <rect class="blue-card" x="680" y="250" width="207" height="88" rx="12"/>
+  <text class="ink badge" x="783" y="286" text-anchor="middle">Auth</text>
+  <text class="muted small" x="783" y="313" text-anchor="middle">login + sessions</text>
+  <rect class="blue-card" x="910" y="250" width="207" height="88" rx="12"/>
+  <text class="ink badge" x="1013" y="286" text-anchor="middle">Projects</text>
+  <text class="muted small" x="1013" y="313" text-anchor="middle">projects + members</text>
+  <rect class="blue-card" x="1140" y="250" width="207" height="88" rx="12"/>
+  <text class="ink badge" x="1243" y="286" text-anchor="middle">Tasks</text>
+  <text class="muted small" x="1243" y="313" text-anchor="middle">tasks + comments</text>
+  <rect class="blue-card" x="1370" y="250" width="207" height="88" rx="12"/>
+  <text class="ink badge" x="1473" y="286" text-anchor="middle">Notifications</text>
+  <text class="muted small" x="1473" y="313" text-anchor="middle">activity feed API</text>
+
+  <rect class="lane" x="45" y="420" width="1590" height="280" rx="22"/>
+  <text class="ink lane-title" x="70" y="463">2  Persistent state and cache</text>
+  <text class="muted small" x="70" y="487">These service names refer to the same backend containers shown above.</text>
+  <rect class="green-card" x="75" y="510" width="205" height="43" rx="10"/>
+  <text class="ink badge" x="178" y="538" text-anchor="middle">Auth</text>
+  <rect class="green-card" x="75" y="567" width="205" height="43" rx="10"/>
+  <text class="ink badge" x="178" y="595" text-anchor="middle">Projects</text>
+  <rect class="green-card" x="75" y="624" width="205" height="43" rx="10"/>
+  <text class="ink badge" x="178" y="652" text-anchor="middle">Tasks</text>
+  <path class="green-line" d="M280 532h156"/><path d="M442 532l-12-7v14z" fill="#15956a"/>
+  <path class="green-line" d="M280 589h156"/><path d="M442 589l-12-7v14z" fill="#15956a"/>
+  <path class="green-line" d="M280 646h156"/><path d="M442 646l-12-7v14z" fill="#15956a"/>
+  <rect class="green-card" x="450" y="505" width="390" height="167" rx="16"/>
+  <text class="ink card-title" x="480" y="545">PostgreSQL</text>
+  <text class="muted copy" x="480" y="578">Auth, Projects, and Tasks schemas</text>
+  <text class="muted copy" x="480" y="608">Task writes + transactional outbox</text>
+  <text class="muted small" x="480" y="640">One database container</text>
+  <rect class="green-card" x="955" y="526" width="205" height="43" rx="10"/>
+  <text class="ink badge" x="1058" y="554" text-anchor="middle">Auth</text>
+  <rect class="green-card" x="955" y="606" width="205" height="43" rx="10"/>
+  <text class="ink badge" x="1058" y="634" text-anchor="middle">Notifications</text>
+  <path class="green-line" d="M1160 548h76"/><path d="M1242 548l-12-7v14z" fill="#15956a"/>
+  <path class="green-line" d="M1160 628h76"/><path d="M1242 628l-12-7v14z" fill="#15956a"/>
+  <rect class="green-card" x="1250" y="505" width="350" height="167" rx="16"/>
+  <text class="ink card-title" x="1280" y="545">Redis</text>
+  <text class="muted copy" x="1280" y="578">Sessions + login rate limits</text>
+  <text class="muted copy" x="1280" y="608">Activity feed + deduplication</text>
+  <text class="muted small" x="1280" y="640">One cache container</text>
+
+  <rect class="lane" x="45" y="735" width="1590" height="285" rx="22"/>
+  <text class="ink lane-title" x="70" y="778">3  Asynchronous task notifications</text>
+  <text class="muted small" x="70" y="803">A task change is committed before its notification event is published. Queue delivery is retried safely.</text>
+  <rect class="purple-card" x="70" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="175" y="878" text-anchor="middle">Task change</text>
+  <text class="muted small" x="175" y="909" text-anchor="middle">via Tasks API</text>
+  <path class="purple-line" d="M280 895h36"/><path d="M322 895l-12-7v14z" fill="#8b5cf6"/>
+  <rect class="purple-card" x="330" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="435" y="878" text-anchor="middle">PostgreSQL</text>
+  <text class="muted small" x="435" y="909" text-anchor="middle">task + outbox row</text>
+  <path class="purple-line" d="M540 895h36"/><path d="M582 895l-12-7v14z" fill="#8b5cf6"/>
+  <rect class="purple-card" x="590" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="695" y="878" text-anchor="middle">Tasks worker</text>
+  <text class="muted small" x="695" y="909" text-anchor="middle">publishes outbox event</text>
+  <path class="purple-line" d="M800 895h36"/><path d="M842 895l-12-7v14z" fill="#8b5cf6"/>
+  <rect class="purple-card" x="850" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="955" y="878" text-anchor="middle">RabbitMQ</text>
+  <text class="muted small" x="955" y="909" text-anchor="middle">durable event queue</text>
+  <path class="purple-line" d="M1060 895h36"/><path d="M1102 895l-12-7v14z" fill="#8b5cf6"/>
+  <rect class="purple-card" x="1110" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="1215" y="878" text-anchor="middle">Notifications</text>
+  <text class="muted small" x="1215" y="909" text-anchor="middle">consumer + feed API</text>
+  <path class="purple-line" d="M1320 895h36"/><path d="M1362 895l-12-7v14z" fill="#8b5cf6"/>
+  <rect class="purple-card" x="1370" y="835" width="210" height="120" rx="15"/>
+  <text class="ink card-title" x="1475" y="878" text-anchor="middle">Redis feed</text>
+  <text class="muted small" x="1475" y="909" text-anchor="middle">stored + deduplicated</text>
+  <text class="muted small" x="70" y="991">The frontend reads the activity feed through the Notifications API, which reads Redis. RabbitMQ is acknowledged after storage.</text>
+  <text class="muted small" x="70" y="1063">Repeated service and store names across lanes are the same containers, shown more than once to make each flow readable.</text>
+</svg>

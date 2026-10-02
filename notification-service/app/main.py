@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-import hmac
 import logging
 from uuid import UUID
 
@@ -11,8 +10,8 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from .broker import RabbitConsumer
 from .config import Settings
-from .models import Event
 from .store import NotificationStore
 
 logger = logging.getLogger("taskflow.notifications")
@@ -49,7 +48,12 @@ class BodyLimitMiddleware:
         await self.app(scope, replay, send)
 
 
-def create_app(settings: Settings | None = None, store: NotificationStore | None = None, client: httpx.AsyncClient | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    store: NotificationStore | None = None,
+    client: httpx.AsyncClient | None = None,
+    start_consumer: bool = True,
+) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         config = settings or Settings.from_env()
@@ -61,10 +65,16 @@ def create_app(settings: Settings | None = None, store: NotificationStore | None
         else:
             app.state.store = store
         app.state.http = client or httpx.AsyncClient(timeout=httpx.Timeout(2), follow_redirects=False)
+        app.state.consumer = None
         try:
             await app.state.store.ping()
+            if start_consumer:
+                app.state.consumer = RabbitConsumer(config.rabbitmq_url, config.rabbitmq_queue, app.state.store)
+                await app.state.consumer.start()
             yield
         finally:
+            if app.state.consumer is not None:
+                await app.state.consumer.close()
             if client is None:
                 await app.state.http.aclose()
             if redis is not None:
@@ -121,6 +131,8 @@ def create_app(settings: Settings | None = None, store: NotificationStore | None
     @app.get("/ready")
     async def ready(request: Request):
         await request.app.state.store.ping()
+        if start_consumer and (request.app.state.consumer is None or not request.app.state.consumer.ready()):
+            raise HTTPException(status_code=503, detail="Message queue unavailable")
         try:
             response = await request.app.state.http.get(request.app.state.settings.auth_service_url + "/ready")
             if response.status_code != 200:
@@ -128,14 +140,6 @@ def create_app(settings: Settings | None = None, store: NotificationStore | None
         except httpx.HTTPError:
             raise HTTPException(status_code=503, detail="Authentication service unavailable") from None
         return {"status": "ready", "service": "notification-service"}
-
-    @app.post("/events", status_code=202)
-    async def ingest(event: Event, request: Request, x_internal_key: str | None = Header(default=None)):
-        expected = request.app.state.settings.internal_api_key
-        if not x_internal_key or not hmac.compare_digest(x_internal_key.encode(), expected.encode()):
-            raise HTTPException(status_code=401, detail="Invalid internal credentials")
-        await request.app.state.store.ingest(event)
-        return {"accepted": True}
 
     @app.get("/notifications")
     async def notifications(request: Request, user_id: str = Depends(authenticate)):

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 930" role="img" aria-labelledby="title desc">
+  <title id="title">TaskFlow local container architecture</title>
+  <desc id="desc">The browser reaches the Next.js frontend, which proxies requests to Auth, Projects, Tasks, and Notifications on the private Compose network. PostgreSQL is shared by Auth, Projects, and Tasks. Redis is used by Auth and Notifications. Tasks publishes notification events through RabbitMQ to Notifications.</desc>
+  <style>
+    .bg{fill:#f7f9fc}.panel{fill:#fff;stroke:#dce4ee;stroke-width:2}.entry{fill:#eff6ff;stroke:#8cb4f6;stroke-width:2}.service{fill:#f1f5ff;stroke:#a8baf0;stroke-width:2}.store{fill:#e9f9f2;stroke:#84ceb0;stroke-width:2}.queue{fill:#f5f0ff;stroke:#c4a9fb;stroke-width:2}
+    .ink{fill:#15283f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}.muted{fill:#4b6077;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}.title{font-size:38px;font-weight:750}.sub{font-size:19px}.section{font-size:22px;font-weight:720}.name{font-size:21px;font-weight:700}.body{font-size:17px}.small{font-size:15px}.flow{fill:none;stroke:#2563eb;stroke-width:4;stroke-linecap:round}
+  </style>
+  <rect class="bg" width="1680" height="930"/>
+  <text class="ink title" x="70" y="67">TaskFlow: local container architecture</text>
+  <text class="muted sub" x="70" y="102">Current Docker Compose deployment · five application services + PostgreSQL, Redis, and RabbitMQ</text>
+
+  <rect class="panel" x="45" y="135" width="1590" height="300" rx="22"/>
+  <text class="ink section" x="70" y="178">Application boundary</text>
+  <text class="muted small" x="70" y="203">Only the frontend is exposed to the browser. Backend APIs communicate over the private Compose network.</text>
+  <rect class="entry" x="70" y="250" width="180" height="115" rx="16"/>
+  <text class="ink name" x="160" y="294" text-anchor="middle">Browser</text>
+  <text class="muted body" x="160" y="325" text-anchor="middle">user interface</text>
+  <path class="flow" d="M250 307h64"/><path d="M320 307l-12-7v14z" fill="#2563eb"/>
+  <rect class="entry" x="330" y="235" width="240" height="145" rx="16"/>
+  <text class="ink name" x="450" y="282" text-anchor="middle">Next.js frontend</text>
+  <text class="muted body" x="450" y="313" text-anchor="middle">pages + API proxy</text>
+  <text class="muted small" x="450" y="340" text-anchor="middle">browser-facing container</text>
+  <path class="flow" d="M570 307h69"/><path d="M645 307l-12-7v14z" fill="#2563eb"/>
+  <rect class="panel" x="655" y="210" width="950" height="185" rx="18"/>
+  <text class="muted small" x="680" y="239">PRIVATE BACKEND SERVICES</text>
+  <rect class="service" x="680" y="258" width="207" height="108" rx="12"/>
+  <text class="ink name" x="783" y="302" text-anchor="middle">Auth</text>
+  <text class="muted small" x="783" y="331" text-anchor="middle">Node.js · :3001</text>
+  <rect class="service" x="910" y="258" width="207" height="108" rx="12"/>
+  <text class="ink name" x="1013" y="302" text-anchor="middle">Projects</text>
+  <text class="muted small" x="1013" y="331" text-anchor="middle">Java · :8080</text>
+  <rect class="service" x="1140" y="258" width="207" height="108" rx="12"/>
+  <text class="ink name" x="1243" y="302" text-anchor="middle">Tasks</text>
+  <text class="muted small" x="1243" y="331" text-anchor="middle">Go · :8081</text>
+  <rect class="service" x="1370" y="258" width="207" height="108" rx="12"/>
+  <text class="ink name" x="1473" y="302" text-anchor="middle">Notifications</text>
+  <text class="muted small" x="1473" y="331" text-anchor="middle">Python · :8000</text>
+
+  <rect class="panel" x="45" y="465" width="1590" height="90" rx="18"/>
+  <text class="ink section" x="70" y="504">Service checks</text>
+  <text class="muted body" x="310" y="504">Projects → Auth: session</text>
+  <text class="muted body" x="745" y="504">Tasks → Projects: access</text>
+  <text class="muted body" x="1170" y="504">Notifications → Auth: session</text>
+  <text class="muted small" x="70" y="533">Each service owns its data; services use APIs for cross-service validation.</text>
+
+  <rect class="panel" x="45" y="585" width="1590" height="285" rx="22"/>
+  <text class="ink section" x="70" y="628">Infrastructure containers and their clients</text>
+  <rect class="store" x="70" y="655" width="465" height="185" rx="16"/>
+  <text class="ink name" x="100" y="701">PostgreSQL</text>
+  <text class="muted body" x="100" y="734">Auth · Projects · Tasks → database</text>
+  <text class="muted body" x="100" y="766">Service-owned schemas + task outbox</text>
+  <text class="muted small" x="100" y="804">Persistent named volume</text>
+  <rect class="store" x="608" y="655" width="465" height="185" rx="16"/>
+  <text class="ink name" x="638" y="701">Redis</text>
+  <text class="muted body" x="638" y="734">Auth · Notifications → cache/store</text>
+  <text class="muted body" x="638" y="766">Sessions, rate limits, activity feed</text>
+  <text class="muted small" x="638" y="804">Persistent named volume</text>
+  <rect class="queue" x="1146" y="655" width="465" height="185" rx="16"/>
+  <text class="ink name" x="1176" y="701">RabbitMQ</text>
+  <text class="muted body" x="1176" y="734">Tasks → RabbitMQ → Notifications</text>
+  <text class="muted body" x="1176" y="766">Durable notification-event queue</text>
+  <text class="muted small" x="1176" y="804">Persistent named volume</text>
+  <text class="muted small" x="70" y="907">Deployment boundary shown here is local Compose. A future Kubernetes cluster diagram can be added separately.</text>
+</svg>

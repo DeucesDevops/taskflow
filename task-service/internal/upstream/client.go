@@ -21,12 +21,12 @@ type Error struct {
 func (e *Error) Error() string { return e.Message }
 
 type Client struct {
-	HTTP                                              *http.Client
-	AuthURL, ProjectURL, NotificationURL, InternalKey string
+	HTTP                *http.Client
+	AuthURL, ProjectURL string
 }
 
-func New(authURL, projectURL, notificationURL, internalKey string) *Client {
-	return &Client{HTTP: &http.Client{Timeout: 2 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }}, AuthURL: authURL, ProjectURL: projectURL, NotificationURL: notificationURL, InternalKey: internalKey}
+func New(authURL, projectURL string) *Client {
+	return &Client{HTTP: &http.Client{Timeout: 2 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }}, AuthURL: authURL, ProjectURL: projectURL}
 }
 func (c *Client) request(ctx context.Context, method, url, token string, body []byte) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(body))
@@ -38,7 +38,6 @@ func (c *Client) request(ctx context.Context, method, url, token string, body []
 	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Internal-Key", c.InternalKey)
 	}
 	return c.HTTP.Do(req)
 }
@@ -95,21 +94,6 @@ func (c *Client) Ready(ctx context.Context) error {
 		if res.StatusCode != 200 {
 			return fmt.Errorf("dependency not ready")
 		}
-	}
-	return nil
-}
-func (c *Client) Notify(ctx context.Context, event task.Event) error {
-	body, err := json.Marshal(event)
-	if err != nil {
-		return err
-	}
-	res, err := c.request(ctx, http.MethodPost, c.NotificationURL+"/events", "", body)
-	if err != nil {
-		return fmt.Errorf("notification delivery unavailable")
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 202 {
-		return fmt.Errorf("notification rejected with status %d", res.StatusCode)
 	}
 	return nil
 }

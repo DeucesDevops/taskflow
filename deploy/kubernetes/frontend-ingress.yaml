@@ -1,0 +1,19 @@
+# F5 NGINX Ingress Controller handles this Ingress. It routes only to the frontend;
+# the frontend's same-origin API proxy reaches the private backend Services.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: taskflow.deuces.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000

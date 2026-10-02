@@ -36,7 +36,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run ./scripts/setup.sh first}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    networks: [backend]
+    networks: [backend, ingress]
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U taskflow -d taskflow']
       interval: 5s
@@ -45,6 +45,8 @@ services:
     logging:
       driver: json-file
       options: {max-size: '10m', max-file: '3'}
+    ports:
+      - "127.0.0.1:5433:5432"
 
   redis:
     image: redis:7.4-bookworm@sha256:71da9275c5f3fcb97d0fa0c8c5b36cc995327265420f17a04bfd544f458059f7
@@ -71,6 +73,40 @@ services:
       interval: 5s
       timeout: 3s
       retries: 15
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+
+  rabbitmq:
+    image: rabbitmq:4.1.8-management-alpine@sha256:4631fc431a8fb41e3d7449f9a18faa13ea807793b7a5224080ff505780f8d11b
+    restart: unless-stopped
+    init: true
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 0.75
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    environment:
+      RABBITMQ_DEFAULT_USER: taskflow
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Run ./scripts/setup.sh first}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks: [backend, ingress]
+    ports:
+      - '127.0.0.1:15672:15672'
+    healthcheck:
+      test: [CMD, su-exec, rabbitmq, rabbitmq-diagnostics, -q, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     logging:
       driver: json-file
       options: {max-size: '10m', max-file: '3'}
@@ -115,9 +151,11 @@ services:
       PORT: '8000'
       REDIS_URL: redis://redis:6379/0
       AUTH_SERVICE_URL: http://auth-service:3001
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Run ./scripts/setup.sh first}
+      RABBITMQ_URL: amqp://taskflow:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      RABBITMQ_QUEUE: taskflow.notifications
     depends_on:
       redis: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
       auth-service: {condition: service_healthy}
 
   task-service:
@@ -130,12 +168,12 @@ services:
       DATABASE_URL: postgres://taskflow:${POSTGRES_PASSWORD}@postgres:5432/taskflow?sslmode=disable
       AUTH_SERVICE_URL: http://auth-service:3001
       PROJECT_SERVICE_URL: http://project-service:8080
-      NOTIFICATION_SERVICE_URL: http://notification-service:8000
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      RABBITMQ_URL: amqp://taskflow:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      RABBITMQ_QUEUE: taskflow.notifications
     depends_on:
       postgres: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
       project-service: {condition: service_healthy}
-      notification-service: {condition: service_healthy}
 
   frontend:
     <<: *app
@@ -167,3 +205,4 @@ networks:
 volumes:
   postgres-data:
   redis-data:
+  rabbitmq-data:

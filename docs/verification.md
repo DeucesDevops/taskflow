@@ -75,9 +75,9 @@ Re-run the build and runtime verification with `./scripts/verify_milestone3.sh`.
 
 ## Milestone 4 verification
 
-Milestone 4 adds a SHA-pinned GitHub Actions pipeline that validates all five language stacks, performs Semgrep SAST, scans repository dependencies/secrets/configuration with Trivy, builds each production image, generates an SPDX JSON SBOM and SARIF vulnerability report, and rejects high or critical image findings. The workflow exports each image only after its scan passes, loads those exact artifacts for the full local integration suite, and publishes only after integration succeeds.
+Milestone 4 adds a SHA-pinned GitHub Actions pipeline that validates all five language stacks, performs Semgrep SAST, scans repository dependencies/secrets/configuration with Trivy, builds each production image, generates an SPDX JSON SBOM and SARIF vulnerability report, and rejects high or critical image findings. The workflow exports each image only after its scan passes and loads those exact artifacts for the full local integration suite.
 
-`scripts/lint_workflows.sh` verifies the workflow with a checksum-pinned actionlint release. The existing Milestone 3 verification remains the local parity check for build, runtime, restart, isolation, and container policy. Docker Hub publication targets the single private repository `macroni607/taskflow`, using service-specific tags, and remains inactive until `DOCKERHUB_TOKEN` is configured in GitHub Actions.
+`scripts/lint_workflows.sh` verifies the workflow with a checksum-pinned actionlint release. The existing Milestone 3 verification remains the local parity check for build, runtime, restart, isolation, and container policy. CI does not publish images or deploy the application.
 
 Verified locally on 20 September 2026:
 
@@ -87,4 +87,13 @@ Verified locally on 20 September 2026:
 - `scripts/verify_milestone3.sh` rebuilt all five images and passed both end-to-end suites, cross-user isolation, all 8 notification tests against real Redis, restart recovery, and the container policy.
 - Trivy 0.74.0 found no high or critical vulnerabilities in any of the five final images. Docker Scout independently regenerated all five SPDX/SARIF report sets and passed the same high/critical policy.
 
-Hosted validation is triggered by a `milestone-*` branch push. Docker Hub publication runs only from `main` or a `v*` tag after the repository secret described above is configured.
+Hosted validation is triggered by pull requests, `main`, `milestone-*` branch pushes, release tags, or manual dispatch. The workflow performs validation only.
+
+## RabbitMQ integration verification
+
+Verified locally on 25 September 2026 with all eight Compose services running:
+
+- `scripts/verify_milestone3.sh` rebuilt the application images, passed both end-to-end smoke suites, cross-user isolation, RabbitMQ consumer tests, real-Redis deduplication/feed tests, restart recovery, and the container policy.
+- A task created in Chrome appeared immediately in the Activity feed after travelling through the PostgreSQL outbox, RabbitMQ, and Redis.
+- With the notification consumer stopped, a second task created in Chrome produced one ready RabbitMQ message and a delivered outbox record. After the consumer restarted, the queue returned to zero ready/unacknowledged messages with one active consumer.
+- Redis contained exactly one notification for each browser-created task, confirming recovery delivery and stable-ID deduplication.

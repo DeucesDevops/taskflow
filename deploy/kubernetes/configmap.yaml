@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskflow-config
+data:
+  # Replace with the exact HTTPS origin users will visit; mutation CSRF checks use it.
+  APP_ORIGIN: https://taskflow.deuces.dev
+  # Choose the initial account address before deployment.
+  DEMO_EMAIL: REPLACE_WITH_BOOTSTRAP_EMAIL

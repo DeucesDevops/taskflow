@@ -1,6 +1,20 @@
 # TaskFlow
 
-A local team task workspace built with five services in four backend languages. **Milestones 1–4:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, receive durable notifications, run the stack with tested container security controls, and produce tested/scanned container artifacts in CI. One Docker Compose command runs the application, PostgreSQL, and Redis.
+A local team task workspace built with five services in four backend languages. **Milestones 1–4:** register or sign in, create shared projects, manage members, assign and discuss tasks, track progress, receive durable notifications, run the stack with tested container security controls, and validate tested/scanned container artifacts in CI. One Docker Compose command runs the application, PostgreSQL, Redis, and RabbitMQ.
+
+## Architecture diagrams
+
+The diagrams below describe the current local Docker Compose setup. A Kubernetes cluster diagram can be added here separately when that deployment is designed.
+
+### Container architecture
+
+![TaskFlow container architecture showing the frontend, backend services, PostgreSQL, Redis, and RabbitMQ](docs/taskflow-container-architecture.png)
+
+### Application data flow
+
+![TaskFlow data flow from the browser through backend services, PostgreSQL outbox, RabbitMQ, and Redis](docs/taskflow-data-flow.png)
+
+The initial [Kubernetes manifest draft](deploy/kubernetes/README.md) describes the planned kOps/ALB/NGINX/EBS layout. It is not deployed; the diagrams above still show the current Compose setup.
 
 ## Run locally
 
@@ -20,7 +34,7 @@ The default demo project is **Platform launch**. Create a task, select its statu
 
 `setup.sh` creates a git-ignored `.env` with random database and internal API credentials and preserves existing configuration. Alternatively, copy `.env.example` to `.env` and supply your own values. Keep `POSTGRES_PASSWORD` URL-safe because it is used in connection URLs. Set `FRONTEND_PORT` if port 3000 is occupied. If you customize the demo email/password, enter your configured values in the sign-in form. The form's sample credentials stay at their defaults.
 
-Only the frontend is published, bound to `127.0.0.1`. Backend services, PostgreSQL, and Redis are accessible on the Compose network. This setup is for local development, not an Internet deployment.
+The frontend, PostgreSQL development port, and RabbitMQ management console are bound only to `127.0.0.1`; application backends, Redis, and RabbitMQ's AMQP port remain private to Compose. This setup is for local development, not an Internet deployment.
 
 ## Check and stop
 
@@ -39,7 +53,7 @@ docker compose up --wait
 
 The smoke check needs Python 3 on the host. It checks liveness/readiness, login/logout, httpOnly cookies, unauthenticated access, cross-origin write rejection, project creation, task creation/status changes, and notification delivery. It deliberately leaves a clearly named smoke project/task so persistence can be inspected. For a custom port, run `TASKFLOW_URL=http://localhost:YOUR_PORT python3 scripts/smoke.py`. Pass `DEMO_EMAIL` and `DEMO_PASSWORD` as environment variables if changed.
 
-PostgreSQL and Redis use named volumes. `docker compose down` preserves them. **`docker compose down --volumes` permanently deletes this project's local data**, including sessions. If you change the database password after the first start, also update the existing database role password or intentionally reset the volumes; initialization settings do not update an existing database.
+PostgreSQL, Redis, and RabbitMQ use named volumes. `docker compose down` preserves them. **`docker compose down --volumes` permanently deletes this project's local data**, including sessions and queued messages. If you change the database or RabbitMQ password after the first start, also update the existing service credentials or intentionally reset the volumes; initialization settings do not update existing data volumes.
 
 ## Repository
 
@@ -52,7 +66,7 @@ taskflow/
 ├── notification-service/     Python + FastAPI, notification ingestion and feed
 ├── scripts/                  Local setup and end-to-end smoke check
 ├── docs/                     API contract, architecture, scope and verification
-├── docker-compose.yml        All seven local services and persistent volumes
+├── docker-compose.yml        All eight local services and persistent volumes
 └── .env.example              Documented local configuration
 ```
 
@@ -69,8 +83,9 @@ Each service has its own dependencies, lock/version declarations, Dockerfile, ru
 | Notifications | 8000 | Accept internal events, return current user's feed | Redis lists and deduplication keys |
 | PostgreSQL | 5432 | Persistent application records | Named volume |
 | Redis | 6379 | Expiring sessions and notification feeds | Named volume, append-only persistence |
+| RabbitMQ | 5672 | Durable task-event delivery | Named volume; management UI on localhost:15672 |
 
-Every app service exposes `/health` for liveness and `/ready` for dependency readiness. Compose waits for readiness before starting dependents. The browser calls only the frontend. Backend URLs and bearer tokens stay server-side. Auth owns the user identity; projects enforce owner access; tasks check access through the project service. Task changes call the notification service with an internal key. See [architecture](docs/architecture.md) and [API contract](docs/api-contract.md).
+Every app service exposes `/health` for liveness and `/ready` for dependency readiness. Compose waits for readiness before starting dependents. The browser calls only the frontend. Backend URLs and bearer tokens stay server-side. Auth owns the user identity; projects enforce owner access; tasks check access through the project service. Task changes commit notification events to a PostgreSQL outbox, publish them to RabbitMQ, and the notification service consumes them into Redis. See [architecture](docs/architecture.md) and [API contract](docs/api-contract.md).
 
 ## Development and tests
 
@@ -100,7 +115,7 @@ Individual checks with the appropriate runtimes installed:
 
 Recorded results are in [the verification notes](docs/verification.md). See each service's package/build manifest for runtime versions. Native runs require the service environment variables in [the API contract](docs/api-contract.md) and reachable backing services; Compose is the supported, fully wired local path.
 
-GitHub Actions now runs language-specific checks, Semgrep SAST, Trivy repository and image gates, SPDX SBOM generation, and full-stack integration against the exact scanned images. Successful `main` and `v*` runs can publish commit-addressed images to the `macroni607` Docker Hub namespace after the `DOCKERHUB_TOKEN` repository secret is configured. See [continuous integration](docs/continuous-integration.md) for the pipeline, reports, optional SonarQube settings, and recommended required checks.
+GitHub Actions runs language-specific checks, Semgrep SAST, Trivy repository and image gates, SPDX SBOM generation, and full-stack integration against the exact scanned images. It does not publish or deploy artifacts. See [continuous integration](docs/continuous-integration.md) for the pipeline, reports, optional SonarQube settings, and recommended required checks.
 
 For startup problems, inspect `docker compose ps` and the failing service's logs. Verify Docker is running, `.env` exists, and your selected frontend port is free. A backend outage produces a failed readiness check and a visible error in the UI; health does not pretend the dependency is available.
 
@@ -108,8 +123,8 @@ For startup problems, inspect `docker compose ps` and the failing service's logs
 
 This is a working development foundation with production-oriented structure, not a production deployment. It supports registration, signed and revocable 24-hour JWT sessions, team membership, project editing/archival, complete task CRUD, assignments, comments, pagination, and activity feeds. Password reset, email verification, invitations for unregistered users, ownership transfer, and fine-grained roles are outside this milestone. Notification feeds retain the latest 100 entries and expire after seven days without new events.
 
-Schemas belong to individual services but use one local database role. All PostgreSQL services use versioned, transactional migrations that preserve Milestone 1 data. Task mutations and notification events commit atomically to a PostgreSQL outbox; a retrying worker delivers at least once and Redis deduplicates stable event IDs. Application containers run as non-root users with read-only roots, dropped capabilities, bounded CPU/memory/process counts, private backend networking, and graceful shutdown periods. Production work still includes TLS, managed secrets, per-service database roles, backups, account recovery/verification, outbox retention, and deployment-specific rate limiting. See [container hardening](docs/container-hardening.md) for the enforced policy and documented infrastructure exceptions.
+Schemas belong to individual services but use one local database role. All PostgreSQL services use versioned, transactional migrations that preserve Milestone 1 data. Task mutations and notification events commit atomically to a PostgreSQL outbox; a retrying worker publishes durably to RabbitMQ, and Redis deduplicates stable event IDs after consumption. Application containers run as non-root users with read-only roots, dropped capabilities, bounded CPU/memory/process counts, private backend networking, and graceful shutdown periods. Production work still includes TLS, managed secrets, per-service database roles, backups, account recovery/verification, outbox retention, and deployment-specific rate limiting. See [container hardening](docs/container-hardening.md) for the enforced policy and documented infrastructure exceptions.
 
-Dependency lockfiles and explicit runtime versions keep dependency versions consistent; PostgreSQL and Redis images are pinned by digest. Maintain those pins and application dependencies together as security updates become available. No cloud infrastructure or external notification provider is provisioned.
+Dependency lockfiles and explicit runtime versions keep dependency versions consistent; PostgreSQL, Redis, and RabbitMQ images are pinned by digest. Maintain those pins and application dependencies together as security updates become available. No cloud infrastructure or external notification provider is provisioned by this repository.
 
-The CI pipeline publishes application images but does not provision registries, cloud identity, or deployment infrastructure. AWS OIDC, ECR, Terraform state, managed data services, and runtime secrets belong to Milestone 5. The next stages remain [documented](docs/roadmap.md): Terraform/AWS, EKS/Helm, Argo CD, observability/DevSecOps, and Backstage.
+The CI pipeline validates application images but does not publish them or deploy infrastructure. The Kubernetes files are an untested deployment starting point; cluster provisioning and production validation remain separate work.

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"taskflow/task-service/internal/api"
+	"taskflow/task-service/internal/broker"
 	"taskflow/task-service/internal/config"
 	"taskflow/task-service/internal/outbox"
 	"taskflow/task-service/internal/store"
@@ -57,10 +58,12 @@ func run(logger *slog.Logger) error {
 		return errors.New("database initialization failed; check database configuration and readiness")
 	}
 	defer db.Close()
-	dependencies := upstream.New(cfg.AuthURL, cfg.ProjectURL, cfg.NotificationURL, cfg.InternalKey)
+	dependencies := upstream.New(cfg.AuthURL, cfg.ProjectURL)
+	publisher := broker.NewPublisher(cfg.RabbitMQURL, cfg.RabbitMQQueue)
+	defer publisher.Close()
 	workerCtx, workerCancel := context.WithCancel(ctx)
 	workerDone := make(chan struct{})
-	go func() { defer close(workerDone); outbox.Run(workerCtx, db, dependencies, logger) }()
+	go func() { defer close(workerDone); outbox.Run(workerCtx, db, publisher, logger) }()
 	defer func() { workerCancel(); <-workerDone }()
 	srv := &http.Server{Addr: ":" + cfg.Port, Handler: api.New(db, dependencies, logger), ReadHeaderTimeout: 3 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 12 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	result := make(chan error, 1)
