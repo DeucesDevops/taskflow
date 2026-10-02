@@ -1,5 +1,5 @@
-aio-pika>=9.5,<10
+aio-pika>=10.0.1,<11
 fastapi>=0.115,<1
 httpx>=0.28,<1
-redis>=5.2,<8
-uvicorn>=0.34,<1
+redis>=8.1.0,<9
+uvicorn>=0.54.0,<1
