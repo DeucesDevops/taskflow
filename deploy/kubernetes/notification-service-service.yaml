@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: notification-service
+  namespace: taskflow
 spec:
   type: ClusterIP
   selector:

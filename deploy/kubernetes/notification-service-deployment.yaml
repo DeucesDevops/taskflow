@@ -1,18 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: task-service
+  name: notification-service
+  namespace: taskflow
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: task-service
+      app: notification-service
   template:
     metadata:
       labels:
-        app: task-service
+        app: notification-service
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
@@ -23,26 +24,19 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: task-service
-          image: macroni607/taskflow:task-service-sha-2d148a04d9ca
+        - name: notification-service
+          image: macroni607/taskflow:notification-service-sha-2d148a04d9ca
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 8081
+              containerPort: 8000
           env:
             - name: PORT
-              value: "8081"
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: taskflow-secrets
-                  key: POSTGRES_PASSWORD
-            - name: DATABASE_URL
-              value: postgres://taskflow:$(POSTGRES_PASSWORD)@postgres:5432/taskflow?sslmode=disable
+              value: "8000"
+            - name: REDIS_URL
+              value: redis://redis:6379/0
             - name: AUTH_SERVICE_URL
               value: http://auth-service:3001
-            - name: PROJECT_SERVICE_URL
-              value: http://project-service:8080
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:

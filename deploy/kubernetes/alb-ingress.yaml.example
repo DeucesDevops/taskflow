@@ -24,6 +24,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: taskflow-nginx
+                name: taskflow-nginx-nginx-ingress-controller
                 port:
                   number: 80

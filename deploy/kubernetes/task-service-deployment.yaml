@@ -1,18 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service
+  name: task-service
+  namespace: taskflow
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: auth-service
+      app: task-service
   template:
     metadata:
       labels:
-        app: auth-service
+        app: task-service
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
@@ -23,39 +24,35 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: auth-service
-          image: macroni607/taskflow:auth-service-sha-2d148a04d9ca
+        - name: task-service
+          image: macroni607/taskflow:task-service-sha-2d148a04d9ca
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 3001
+              containerPort: 8081
           env:
             - name: PORT
-              value: "3001"
+              value: "8081"
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: taskflow-secrets
                   key: POSTGRES_PASSWORD
             - name: DATABASE_URL
-              value: postgres://taskflow:$(POSTGRES_PASSWORD)@postgres:5432/taskflow
-            - name: REDIS_URL
-              value: redis://redis:6379/0
-            - name: DEMO_EMAIL
-              valueFrom:
-                configMapKeyRef:
-                  name: taskflow-config
-                  key: DEMO_EMAIL
-            - name: DEMO_PASSWORD
+              value: postgres://taskflow:$(POSTGRES_PASSWORD)@postgres:5432/taskflow?sslmode=disable
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:3001
+            - name: PROJECT_SERVICE_URL
+              value: http://project-service:8080
+            - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: taskflow-secrets
-                  key: DEMO_PASSWORD
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: taskflow-secrets
-                  key: JWT_SECRET
+                  key: RABBITMQ_PASSWORD
+            - name: RABBITMQ_URL
+              value: amqp://taskflow:$(RABBITMQ_PASSWORD)@rabbitmq:5672/
+            - name: RABBITMQ_QUEUE
+              value: taskflow.notifications
           startupProbe:
             httpGet:
               path: /health

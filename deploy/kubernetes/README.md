@@ -1,110 +1,172 @@
-# TaskFlow Kubernetes manifest draft
+# TaskFlow Kubernetes resources
 
-These files model the planned **kOps on AWS** deployment; they do not create a
-cluster or deploy anything by themselves. They preserve the application's
-current eight-container shape:
+Each of the eight services has its own Deployment file and Service file, all
+in this folder. Edit the YAML directly and apply it with `kubectl apply -f`.
 
-```text
-Internet → AWS ALB → NGINX Ingress Controller → frontend Service
-                                               └→ frontend API proxy
-                                                  → Auth / Projects / Tasks / Notifications
-Auth / Projects / Tasks → PostgreSQL
-Auth / Notifications → Redis
-Tasks → RabbitMQ → Notifications → Redis
-```
+| Component | Deployment file | Service file |
+|---|---|---|
+| Frontend | `frontend-deployment.yaml` | `frontend-service.yaml` |
+| Auth | `auth-service-deployment.yaml` | `auth-service-service.yaml` |
+| Projects | `project-service-deployment.yaml` | `project-service-service.yaml` |
+| Tasks | `task-service-deployment.yaml` | `task-service-service.yaml` |
+| Notifications | `notification-service-deployment.yaml` | `notification-service-service.yaml` |
+| PostgreSQL | `postgres-deployment.yaml` | `postgres-service.yaml` |
+| Redis | `redis-deployment.yaml` | `redis-service.yaml` |
+| RabbitMQ | `rabbitmq-deployment.yaml` | `rabbitmq-service.yaml` |
 
-The five application containers are Deployments with private ClusterIP
-Services. PostgreSQL, Redis, and RabbitMQ are single-replica StatefulSets with
-separate EBS-backed PersistentVolumeClaims. Each StatefulSet has a headless
-governing Service for stable pod identity and a separate ClusterIP Service for
-application traffic. The public ALB terminates TLS using ACM; the maintained
-F5 NGINX Ingress Controller routes to the frontend over the cluster network.
-Backend Services have no public load balancers.
+Supporting files are `namespace.yaml`, `configmap.yaml`, `storage-class.yaml`,
+`postgres-pvc.yaml`, `redis-pvc.yaml`, `rabbitmq-pvc.yaml`, and
+`frontend-ingress.yaml`. Every namespaced resource explicitly uses `taskflow`.
+Images are specified directly in the five application Deployment files;
+there are no Kustomize image overrides.
 
-Workload and network resources are kept separate: application Deployments are
-in `deployments/`, data workloads are in `statefulsets/`, and every Kubernetes
-Service is in `services/`.
+PostgreSQL, Redis, and RabbitMQ each use one replica, `Recreate` updates, and
+their own persistent volume. Keep these three Deployments at one replica;
+this configuration does not configure data replication. Probes and resource
+requests/limits are included in every Deployment.
 
-## Before any deployment
+## Configure and apply
 
-1. Create a kOps cluster with an AWS-compatible cloud controller and install
-   the **AWS EBS CSI driver** with its required IAM permissions. The
-   `taskflow-gp3` StorageClass dynamically provisions encrypted gp3 volumes
-   and waits for the consuming pod's Availability Zone.
-2. Install the **AWS Load Balancer Controller** with IAM and subnet discovery
-   configured. This controller, not NGINX, creates the ALB from
-   `alb-ingress.example.yaml`. The example uses instance targets, so NGINX's
-   Service must be NodePort. Do not use the retired community
-   `kubernetes/ingress-nginx` project for a new deployment.
-3. Install the maintained F5 NGINX Ingress Controller as release
-   `taskflow-nginx` in namespace `nginx-ingress`, using
-   `nginx-controller-values.yaml`. The values select a NodePort Service
-   instead of creating a second AWS load balancer:
+Run commands from the repository root. These resources target the existing
+kOps/AWS plan; the cluster, EBS CSI driver, and ingress controllers must already
+be installed. For an existing installation, read the migration section first.
+
+1. Edit the `image:` field in each application Deployment to a published image
+   your nodes can pull. The existing Docker Hub tags are preserved. If the
+   registry is private, create a registry Secret in `taskflow` and reference it
+   with `imagePullSecrets` in each application pod spec.
+2. Set `APP_ORIGIN` and `DEMO_EMAIL` in `configmap.yaml`. The current host is
+   `taskflow.deuces.dev`; keep it aligned with both ingress rules.
+3. The three PVCs select the encrypted EBS `taskflow-gp3` StorageClass defined
+   in `storage-class.yaml`. The EBS CSI driver needs AWS IAM permissions. For
+   another cluster, select its installed StorageClass in all three PVC files.
+4. Create the namespace, then prepare the Secret from the example:
 
    ```sh
    kubectl apply -f deploy/kubernetes/namespace.yaml
-   helm upgrade --install taskflow-nginx oci://ghcr.io/nginx/charts/nginx-ingress \
-     --version 2.7.3 --namespace nginx-ingress --create-namespace \
-     -f deploy/kubernetes/nginx-controller-values.yaml
+   cp deploy/kubernetes/secrets.yaml.example deploy/kubernetes/secrets.yaml
    ```
 
-   Chart 2.7.3 renders the Service
-   `taskflow-nginx-nginx-ingress-controller`; the ALB Ingress backend name
-   must continue to match it. The NGINX controller watches the `taskflow`
-   namespace and handles the `nginx` IngressClass.
-4. Build and publish the five application images for your worker-node
-   architecture. The CI pipeline does not publish images. Replace all five
-   `registry.example.com` image entries and `replace-me` tags in
-   `kustomization.yaml`; grant nodes pull access to your registry.
-5. The host is set to `deuces.dev` in `configmap.yaml`,
-   `frontend-ingress.yaml`, and `alb-ingress.example.yaml`. Obtain an ACM
-   certificate covering `deuces.dev`; make a private copy of the ALB
-   template and replace its certificate ARN placeholder. `APP_ORIGIN` must
-   exactly match the browser's HTTPS origin or mutating requests will return
-   403. If you choose a subdomain instead,
-   update all three files together. Also replace
-   `REPLACE_WITH_BOOTSTRAP_EMAIL` in `configmap.yaml` with the intended
-   initial account email.
-6. Make a private copy of `secrets.example.yaml`, replace every placeholder
-   with unique credentials, and keep that copy out of Git. Passwords must be
-   URL-safe because the services compose PostgreSQL/AMQP URLs from them.
-   Apply the private Secret before the workloads.
+   Fill every placeholder in `secrets.yaml` with unique credentials before
+   applying it. That file is Git-ignored. Use URL-safe PostgreSQL and RabbitMQ
+   passwords because the app embeds them in connection URLs. Use at least 32
+   random characters for `JWT_SECRET`. If the previous Secret already exists,
+   keep its credentials instead of replacing them: changing these values does
+   not rotate credentials inside an existing database or broker.
+5. Apply the Secret and the resources:
 
    ```sh
-   kubectl apply -f /private/path/taskflow-secrets.yaml
-   kubectl apply -k deploy/kubernetes
-   kubectl apply -f /private/path/taskflow-alb-ingress.yaml
+   kubectl apply -f deploy/kubernetes/secrets.yaml
+   kubectl apply -f deploy/kubernetes/
+   kubectl -n taskflow get deployments,pods,services,pvc,ingress
+   kubectl -n taskflow rollout status deployment/frontend --timeout=300s
    ```
 
-   The ALB template and Secret template are deliberately **excluded** from
-   `kustomization.yaml` until their placeholders are filled. If kOps subnet
-   tags do not support ALB auto-discovery, configure subnets explicitly in
-   the ALB Ingress before applying it. Once the ALB is healthy, Namecheap
-   BasicDNS/FreeDNS/PremiumDNS can use an apex `ALIAS` record (`@`) pointing
-   to the ALB DNS name; remove any conflicting apex A/AAAA/CNAME/redirect
-   record first. DNS is not changed by these manifests.
+   You can also apply a single file, for example:
 
-## Checks and limits
+   ```sh
+   kubectl apply -f deploy/kubernetes/auth-service-deployment.yaml
+   kubectl apply -f deploy/kubernetes/auth-service-service.yaml
+   ```
 
-```sh
-kubectl kustomize deploy/kubernetes
-kubectl -n taskflow get deploy,sts,svc,pvc,ingress
-kubectl -n nginx-ingress get svc,ingress
-kubectl -n taskflow rollout status deployment/frontend
+The `.example` files are skipped by directory-based `kubectl apply -f`. The
+NGINX values file is Helm configuration, and the ALB/Secret examples require
+configuration before applying them explicitly.
+
+## Public HTTPS access
+
+The existing routing remains:
+
+```text
+HTTPS → AWS ALB → F5 NGINX → frontend Service → frontend API proxy
+                                                → private backend Services
 ```
 
-This is a first, **single-replica** configuration, not a high-availability
-database or broker design. Each EBS claim is ReadWriteOnce and tied to an
-Availability Zone. The StorageClass uses `Retain` so deleting a claim does
-not silently delete its EBS volume; retained volumes can still incur charges.
-Plan tested backups and recovery before storing production data. Kubernetes
-Secrets also need appropriate API/etcd encryption, access controls, and a
-rotation process. TLS ends at the ALB; internal HTTP and database connections
-are not yet encrypted. No kOps cluster, add-on, image registry, DNS record, or
-AWS resource is provisioned by these files.
+Install the F5 NGINX Ingress Controller using the example values, which select
+a NodePort Service. The AWS Load Balancer Controller must also be installed
+with IAM and subnet discovery configured.
 
-References: [EBS CSI StorageClass parameters](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/parameters.md),
-[AWS Load Balancer Controller ingress annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/ingress/annotations/),
-[F5 NGINX Ingress Controller Helm installation](https://docs.nginx.com/nginx-ingress-controller/install/helm/open-source/),
-[Namecheap apex ALIAS records](https://www.namecheap.com/support/knowledgebase/article.aspx/10128/2237/how-to-create-an-alias-record/),
-and [Ingress NGINX retirement notice](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/).
+```sh
+helm upgrade --install taskflow-nginx oci://ghcr.io/nginx/charts/nginx-ingress \
+  --version 2.7.3 --namespace nginx-ingress --create-namespace \
+  -f deploy/kubernetes/nginx-controller-values.yaml.example
+```
+
+Copy `alb-ingress.yaml.example` to a private path, set the ACM certificate ARN
+and hostname, and apply that copy with `kubectl apply -f`. Its backend is
+`taskflow-nginx-nginx-ingress-controller` in `nginx-ingress`; verify that this
+matches the installed NGINX Service. Point the hostname's DNS at the resulting
+ALB. The manifests do not create ACM certificates or DNS records.
+
+For a local HTTP check without ingress, set `APP_ORIGIN` to
+`http://localhost:3000` in the ConfigMap and `SESSION_COOKIE_SECURE` to
+`"false"` in the frontend Deployment, apply both files, and restart the
+frontend to load the ConfigMap change:
+
+```sh
+kubectl apply -f deploy/kubernetes/configmap.yaml
+kubectl apply -f deploy/kubernetes/frontend-deployment.yaml
+kubectl -n taskflow rollout restart deployment/frontend
+kubectl -n taskflow port-forward service/frontend 3000:3000
+```
+
+Open `http://localhost:3000`. Restore the HTTPS origin and secure cookies before
+using the public HTTPS hostname.
+
+## Migrating the previous manifests
+
+File moves preserve the namespace, resource names, selectors, Service ports,
+image tags, and PVC names. Applying these files updates the five existing app
+Deployments and eight Services in place. Applying the new data Deployments
+will **not** remove the previous StatefulSets, so migrate them before the
+folder-wide apply to prevent two controllers from using the same data.
+
+1. Back up the data and inspect the existing claims:
+
+   ```sh
+   kubectl -n taskflow get pvc postgres-data redis-data rabbitmq-data \
+     -o custom-columns=NAME:.metadata.name,CLASS:.spec.storageClassName,VOLUME:.spec.volumeName
+   ```
+
+   If the existing claims use `default` or another class, set the corresponding
+   PVC YAML's `storageClassName` to that existing value before applying. Bound
+   PVC storage classes cannot be changed in place. Do not delete claims or
+   volumes to resolve a class mismatch.
+2. Stop and remove the old data controllers during a maintenance window:
+
+   ```sh
+   kubectl -n taskflow scale statefulset postgres redis rabbitmq --replicas=0
+   kubectl -n taskflow wait --for=delete pod/postgres-0 pod/redis-0 pod/rabbitmq-0 --timeout=300s
+   kubectl -n taskflow delete statefulset postgres redis rabbitmq
+   ```
+
+   Proceed only after the old pods have terminated. The previous manifests use
+   standalone PVCs, so deleting these StatefulSets leaves the claims intact.
+3. Apply the folder as above. The new data Deployments mount `postgres-data`,
+   `redis-data`, and `rabbitmq-data`. Once the replacement pods are healthy,
+   remove the unused headless Services:
+
+   ```sh
+   kubectl -n taskflow delete service postgres-headless redis-headless rabbitmq-headless --ignore-not-found
+   ```
+
+## Verification
+
+```sh
+kubectl apply --dry-run=server -f deploy/kubernetes/
+kubectl -n taskflow get pods,pvc
+kubectl -n taskflow describe pod <pod-name>
+kubectl -n taskflow logs deployment/<service-name>
+```
+
+A server dry run needs a configured cluster and the namespace/Secret setup.
+Pending PVCs usually require checking the selected StorageClass, EBS CSI driver,
+and volume placement. `ImagePullBackOff` requires checking the image tag and
+registry access. `CreateContainerConfigError` requires checking Secret and
+ConfigMap keys. These files have been validated as manifests; a live rollout
+still depends on your cluster, published images, credentials, and controllers.
+
+References: [kubectl apply](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_apply/),
+[Deployment updates](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/),
+[persistent volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/),
+and [EBS CSI StorageClass parameters](https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/parameters.md).

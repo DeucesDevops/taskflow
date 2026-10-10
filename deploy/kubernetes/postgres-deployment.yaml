@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: postgres
+  namespace: taskflow
 spec:
-  serviceName: postgres-headless
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: postgres
@@ -78,10 +80,3 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 128Mi
-      initContainers:
-        - name: init-postgres
-          image: busybox:latest
-          args: ["rm", "-rf", "/var/lib/postgresql/lost+found"]
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/postgresql/data

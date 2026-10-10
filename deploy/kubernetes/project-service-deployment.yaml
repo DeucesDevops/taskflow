@@ -1,60 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
+  name: project-service
+  namespace: taskflow
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: frontend
+      app: project-service
   template:
     metadata:
       labels:
-        app: frontend
+        app: project-service
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65532
-        runAsGroup: 65532
+        runAsUser: 10001
+        runAsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: frontend
-          image: macroni607/taskflow:frontend-sha-2d148a04d9ca
+        - name: project-service
+          image: macroni607/taskflow:project-service-sha-2d148a04d9ca
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: 8080
           env:
             - name: PORT
-              value: "3000"
-            - name: HOSTNAME
-              value: 0.0.0.0
+              value: "8080"
+            - name: DATABASE_URL
+              value: jdbc:postgresql://postgres:5432/taskflow
+            - name: DB_USER
+              value: taskflow
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskflow-secrets
+                  key: POSTGRES_PASSWORD
             - name: AUTH_SERVICE_URL
               value: http://auth-service:3001
-            - name: PROJECT_SERVICE_URL
-              value: http://project-service:8080
-            - name: TASK_SERVICE_URL
-              value: http://task-service:8081
-            - name: NOTIFICATION_SERVICE_URL
-              value: http://notification-service:8000
-            - name: SESSION_COOKIE_SECURE
-              value: "true"
-            - name: APP_ORIGIN
-              valueFrom:
-                configMapKeyRef:
-                  name: taskflow-config
-                  key: APP_ORIGIN
           startupProbe:
             httpGet:
               path: /health
               port: http
             periodSeconds: 5
-            failureThreshold: 30
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /ready
@@ -68,11 +63,11 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              cpu: 100m
-              memory: 192Mi
+              cpu: 250m
+              memory: 384Mi
             limits:
-              cpu: 750m
-              memory: 512Mi
+              cpu: "1"
+              memory: 768Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -84,4 +79,4 @@ spec:
       volumes:
         - name: tmp
           emptyDir:
-            sizeLimit: 64Mi
+            sizeLimit: 128Mi
