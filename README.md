@@ -14,7 +14,7 @@ The diagrams below describe the current local Docker Compose setup. A Kubernetes
 
 ![TaskFlow data flow from the browser through backend services, PostgreSQL outbox, RabbitMQ, and Redis](docs/taskflow-data-flow.png)
 
-The [Kubernetes resources](deploy/kubernetes/README.md) provide a separate Deployment and Service file for each of the eight components, plus configuration, secrets, persistent storage, and ingress. Apply the plain YAML with `kubectl apply -f deploy/kubernetes/` after completing the documented setup. The diagrams above show the Compose setup.
+The [Kubernetes resources](kubernetes/README.md) provide a separate Deployment and Service file for each of the eight components, plus configuration, secrets, persistent storage, and ingress. Apply the plain YAML with `kubectl apply -f kubernetes/` after completing the documented setup. The diagrams above show the Compose setup.
 
 ## Run locally
 

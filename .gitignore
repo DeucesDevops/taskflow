@@ -14,4 +14,4 @@ __pycache__/
 *.log
 .DS_Store
 artifacts/
-deploy/kubernetes/secrets.yaml
+kubernetes/secrets.yaml

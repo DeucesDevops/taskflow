@@ -43,8 +43,8 @@ be installed. For an existing installation, read the migration section first.
 4. Create the namespace, then prepare the Secret from the example:
 
    ```sh
-   kubectl apply -f deploy/kubernetes/namespace.yaml
-   cp deploy/kubernetes/secrets.yaml.example deploy/kubernetes/secrets.yaml
+   kubectl apply -f kubernetes/namespace.yaml
+   cp kubernetes/secrets.yaml.example kubernetes/secrets.yaml
    ```
 
    Fill every placeholder in `secrets.yaml` with unique credentials before
@@ -56,8 +56,8 @@ be installed. For an existing installation, read the migration section first.
 5. Apply the Secret and the resources:
 
    ```sh
-   kubectl apply -f deploy/kubernetes/secrets.yaml
-   kubectl apply -f deploy/kubernetes/
+   kubectl apply -f kubernetes/secrets.yaml
+   kubectl apply -f kubernetes/
    kubectl -n taskflow get deployments,pods,services,pvc,ingress
    kubectl -n taskflow rollout status deployment/frontend --timeout=300s
    ```
@@ -65,8 +65,8 @@ be installed. For an existing installation, read the migration section first.
    You can also apply a single file, for example:
 
    ```sh
-   kubectl apply -f deploy/kubernetes/auth-service-deployment.yaml
-   kubectl apply -f deploy/kubernetes/auth-service-service.yaml
+   kubectl apply -f kubernetes/auth-service-deployment.yaml
+   kubectl apply -f kubernetes/auth-service-service.yaml
    ```
 
 The `.example` files are skipped by directory-based `kubectl apply -f`. The
@@ -89,7 +89,7 @@ with IAM and subnet discovery configured.
 ```sh
 helm upgrade --install taskflow-nginx oci://ghcr.io/nginx/charts/nginx-ingress \
   --version 2.7.3 --namespace nginx-ingress --create-namespace \
-  -f deploy/kubernetes/nginx-controller-values.yaml.example
+  -f kubernetes/nginx-controller-values.yaml.example
 ```
 
 Copy `alb-ingress.yaml.example` to a private path, set the ACM certificate ARN
@@ -104,8 +104,8 @@ For a local HTTP check without ingress, set `APP_ORIGIN` to
 frontend to load the ConfigMap change:
 
 ```sh
-kubectl apply -f deploy/kubernetes/configmap.yaml
-kubectl apply -f deploy/kubernetes/frontend-deployment.yaml
+kubectl apply -f kubernetes/configmap.yaml
+kubectl apply -f kubernetes/frontend-deployment.yaml
 kubectl -n taskflow rollout restart deployment/frontend
 kubectl -n taskflow port-forward service/frontend 3000:3000
 ```
@@ -153,7 +153,7 @@ folder-wide apply to prevent two controllers from using the same data.
 ## Verification
 
 ```sh
-kubectl apply --dry-run=server -f deploy/kubernetes/
+kubectl apply --dry-run=server -f kubernetes/
 kubectl -n taskflow get pods,pvc
 kubectl -n taskflow describe pod <pod-name>
 kubectl -n taskflow logs deployment/<service-name>
