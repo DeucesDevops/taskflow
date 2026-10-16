@@ -1,0 +1,21 @@
+flowchart LR
+  subgraph Ownership["Proposed provisioning ownership"]
+    TF["Terraform: VPC, subnets, egress, ECR and state stores"]
+    Kops["kOps: EC2 cluster lifecycle, instance groups and etcd"]
+    App["Plain YAML now; optional application Helm later"]
+    TF -. "shared network inputs" .-> Kops
+    Kops -. "cluster platform" .-> App
+  end
+  subgraph Runtime["Proposed secrets and observability"]
+    SM["Secrets Manager"] -.-> ESO["External Secrets Operator with workload IAM"]
+    ESO -.-> Secret["Kubernetes Secret to workload environment"]
+    Config["ConfigMap: public runtime configuration"] -.-> App
+    Secret -.-> App
+    App -.-> Signals["Logs, readiness, application metrics and dependency signals"]
+    Signals -.-> Alerts["Dashboards and owned alerts"]
+  end
+  subgraph Recovery["Proposed independent recovery assets"]
+    Assets["Terraform state; kOps state; etcd; SQL; Redis; RabbitMQ"]
+    Assets -.-> Protected["Independent encrypted storage and retention"]
+    Protected -.-> Drill["Isolated restore; measure RPO/RTO; validate event behavior"]
+  end

@@ -1,0 +1,24 @@
+flowchart TB
+  Browser["Browser: loopback port 3000 by default"] --> Frontend["Next.js frontend:3000 and same-origin API proxy"]
+  subgraph Backend["Compose backend network: internal true"]
+    Frontend --> Auth["Auth:3001 - Node.js and TypeScript"]
+    Frontend --> Projects["Projects:8080 - Java and Spring Boot"]
+    Frontend --> Tasks["Tasks:8081 - Go and outbox worker"]
+    Frontend --> Notifications["Notifications:8000 - Python and FastAPI"]
+    Projects -. "validate session" .-> Auth
+    Tasks -. "validate session" .-> Auth
+    Notifications -. "validate session" .-> Auth
+    Tasks -. "check project access" .-> Projects
+    Auth --> DB[("PostgreSQL:5432 - auth schema")]
+    Projects --> DB
+    Tasks --> DB
+    Auth --> Redis[("Redis:6379 - sessions and notification feeds")]
+    Tasks -->|"outbox publish"| Rabbit["RabbitMQ:5672 - durable taskflow.notifications"]
+    Rabbit --> Notifications
+    Notifications --> Redis
+    DB --> PV["postgres-data volume"]
+    Redis --> RV["redis-data volume - AOF enabled"]
+    Rabbit --> QV["rabbitmq-data volume"]
+  end
+  Admin["Loopback-only administration"] -. "5433" .-> DB
+  Admin -. "15672 management UI" .-> Rabbit

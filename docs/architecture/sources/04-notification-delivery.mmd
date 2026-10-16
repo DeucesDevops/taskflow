@@ -1,0 +1,17 @@
+flowchart TB
+  User["Browser task mutation"] --> Proxy["Next.js API proxy"] --> Task["Task-service: auth and project access checks"]
+  Task --> Tx["One SQL transaction: task change and outbox event"]
+  Tx --> Worker["Lease outbox row; stable event ID; retry with backoff"]
+  Worker -->|"persistent publication"| Queue["Durable RabbitMQ taskflow.notifications"]
+  Queue -. "publisher confirmation" .-> Confirm["Mark outbox delivered"]
+  Confirm -.-> Tx
+  Queue --> Consumer["Notification consumer validates event"]
+  Consumer --> Redis["Redis Lua: dedup key and user feed insertion"]
+  Redis --> ACK["ACK only after successful ingest"]
+  Consumer -. "storage failure: NACK and requeue" .-> Queue
+  Consumer -. "invalid: reject without requeue" .-> Reject["Rejected message"]
+  Redis --- Bounds["Feed: latest 100; feed and dedup key TTL: seven days"]
+  Read["Browser GET /api/notifications"] --> ReadProxy["Next.js proxy"]
+  ReadProxy --> API["Notification API validates session via Auth"]
+  API --> Redis
+  Redis --> UI["JSON activity feed"]

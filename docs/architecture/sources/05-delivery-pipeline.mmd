@@ -1,0 +1,18 @@
+flowchart TB
+  Source["PR; main or milestone push; version tag; manual"] --> Lint["Workflow lint"]
+  Source --> Languages["Five service language checks"]
+  Source --> SAST["Semgrep"]
+  Languages --> Repo["Trivy repository gate; Maven dependency inputs"]
+  Lint --> Images["Five production image builds"]
+  Languages --> Images
+  SAST --> Images
+  Repo --> Images
+  Images --> Evidence["SPDX and SARIF; HIGH/CRITICAL gate"]
+  Evidence --> Export["Export exact scanned image archives"]
+  Export --> Integration["Compose no-build; smoke; isolation; Redis; hardening; restart"]
+  Integration --> Results["Retain reports and temporary image artifacts"]
+  Source -. "configured only; not a build dependency" .-> Sonar["Optional SonarQube"]
+  Results -. "proposed" .-> OIDC["GitHub OIDC: scoped publisher"]
+  OIDC -.-> ECR["ECR: tested artifact digest and source SHA"]
+  ECR -.-> Deploy["Private Kubernetes API reachability and scoped RBAC"]
+  Deploy -.-> Verify["Rollout and smoke; production approval; rollback"]
