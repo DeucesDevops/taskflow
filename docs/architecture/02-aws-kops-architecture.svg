@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+<title id="title">AWS architecture with kOps</title><desc id="desc">A proposed AWS foundation around the application&#x27;s current Kubernetes routing and storage model.. PROPOSED TARGET  |  No kOps spec or Terraform infrastructure was found in the application checkout</desc>
+<rect width="1800" height="1250" fill="#f6f8fc"/>
+<rect x="0" y="0" width="1800" height="12" rx="0" fill="#2865bc" stroke="#2865bc" stroke-width="2"/>
+<text x="60" y="38" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">TASKFLOW  /  ARCHITECTURE 02</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="700" fill="#172e48">AWS architecture with kOps</text>
+<text x="60" y="143" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="21" font-weight="400" fill="#50647a">A proposed AWS foundation around the application&#x27;s current Kubernetes routing and storage model.</text>
+<text x="60" y="187" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="700" fill="#b76b13">PROPOSED TARGET  |  No kOps spec or Terraform infrastructure was found in the application checkout</text>
+<rect x="60" y="370" width="1200" height="720" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="388" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">AWS VPC  /  proposed public and private subnet tiers across three Availability Zones</text>
+<rect x="90" y="430" width="1140" height="160" rx="21" fill="#fff5e7" stroke="#cbd7e4" stroke-width="2"/>
+<text x="114" y="448" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#b76b13">PUBLIC SUBNETS  /  load balancer and outbound egress</text>
+<rect x="90" y="620" width="1140" height="435" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="114" y="638" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">PRIVATE SUBNETS  /  EC2 Kubernetes nodes managed by kOps</text>
+<polyline points="405,290 500,290" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="500.0,290.0 488.1,295.3 488.1,284.7" fill="#2865bc"/>
+<polyline points="795,345 795,360 75,360 75,520 135,520" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="135.0,520.0 123.1,525.3 123.1,514.7" fill="#2865bc"/>
+<polyline points="135,545 105,545 105,730 135,730" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="135.0,730.0 123.1,735.3 123.1,724.7" fill="#2865bc"/>
+<polyline points="425,785 425,835" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="425.0,835.0 419.7,823.1 430.3,823.1" fill="#2865bc"/>
+<polyline points="700,890 800,890" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="800.0,890.0 788.1,895.3 788.1,884.7" fill="#168372"/>
+<polyline points="1020,945 1020,980" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1020.0,980.0 1014.7,968.1 1025.3,968.1" fill="#168372"/>
+<polyline points="1310,727 1230,727 1230,720 1185,720" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1185.0,720.0 1196.9,714.7 1196.9,725.3" fill="#7053a2"/>
+<polyline points="1185,890 1240,890 1240,925 1310,925" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1310.0,925.0 1298.1,930.3 1298.1,919.7" fill="#168372"/>
+<polyline points="700,875 750,875 750,660 1205,660 1205,600 890,600 890,565" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="890.0,565.0 895.3,576.9 884.7,576.9" fill="#b76b13"/>
+<rect x="898" y="593" width="125.0" height="28" rx="5" fill="#f6f8fc" stroke="#f6f8fc" stroke-width="1"/>
+<text x="905" y="597" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="400" fill="#b76b13">outbound pulls</text>
+<polyline points="1040,475 1040,410 1485,410 1485,345" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1485.0,345.0 1490.3,356.9 1479.7,356.9" fill="#b76b13"/>
+<polyline points="1310,510 1250,510 1250,750 1185,750" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1185.0,750.0 1196.9,744.7 1196.9,755.3" fill="#7053a2"/>
+<polyline points="800,730 755,730 755,810 425,810 425,835" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="425.0,835.0 419.7,823.1 430.3,823.1" fill="#7053a2"/>
+<rect x="60" y="240" width="345" height="105" rx="15" fill="#ffffff" stroke="#71849a" stroke-width="2"/>
+<rect x="75" y="258" width="5" height="69" rx="2" fill="#71849a" stroke="#71849a" stroke-width="1"/>
+<text x="94" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Users</text>
+<text x="94" y="290" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">HTTPS :443</text>
+<rect x="500" y="240" width="590" height="105" rx="15" fill="#ffffff" stroke="#71849a" stroke-width="2"/>
+<rect x="515" y="258" width="5" height="69" rx="2" fill="#71849a" stroke="#71849a" stroke-width="1"/>
+<text x="534" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Application DNS</text>
+<text x="534" y="290" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">taskflow.deuces.dev -&gt; ALB; DNS provider to be configured</text>
+<rect x="1310" y="240" width="430" height="105" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="1325" y="258" width="5" height="69" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="1344" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="22" font-weight="700" fill="#172e48">Image registry</text>
+<text x="1344" y="289" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="400" fill="#50647a">ECR proposed; current tags use Docker Hub</text>
+<rect x="135" y="475" width="580" height="90" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="150" y="493" width="5" height="54" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="169" y="491" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">AWS ALB + ACM</text>
+<text x="169" y="525" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">TLS ends here; HTTP to NGINX</text>
+<rect x="800" y="475" width="385" height="90" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="815" y="493" width="5" height="54" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="834" y="491" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">NAT egress + IGW</text>
+<text x="834" y="525" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Registry and required APIs</text>
+<rect x="135" y="675" width="580" height="110" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="150" y="693" width="5" height="74" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="169" y="691" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">NodePort -&gt; F5 NGINX</text>
+<text x="169" y="725" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Routes / to frontend; backends stay private</text>
+<rect x="800" y="675" width="385" height="110" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="815" y="693" width="5" height="74" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="834" y="691" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Control plane + etcd</text>
+<text x="834" y="725" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">3 EC2 nodes for HA target</text>
+<rect x="135" y="835" width="565" height="110" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="150" y="853" width="5" height="74" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="169" y="851" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Application worker pods</text>
+<text x="169" y="885" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Frontend -&gt; Auth / Projects / Tasks / Notifications</text>
+<rect x="800" y="835" width="385" height="110" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="815" y="853" width="5" height="74" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="834" y="851" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">In-cluster data pods</text>
+<text x="834" y="885" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">PostgreSQL / Redis / RabbitMQ</text>
+<rect x="800" y="980" width="385" height="60" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="815" y="998" width="5" height="24" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="834" y="996" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Encrypted gp3 EBS</text>
+<rect x="1310" y="455" width="430" height="145" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="1325" y="473" width="5" height="109" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="1344" y="471" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Cluster lifecycle</text>
+<text x="1344" y="505" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">kOps CLI; restricted API endpoint; cluster</text>
+<text x="1344" y="531" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">DNS configured separately</text>
+<rect x="1310" y="650" width="430" height="155" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="1325" y="668" width="5" height="119" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="1344" y="666" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Platform prerequisites</text>
+<text x="1344" y="700" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Load Balancer Controller; EBS CSI;</text>
+<text x="1344" y="726" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">workload IAM; CNI and CoreDNS</text>
+<rect x="1310" y="860" width="430" height="160" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="1325" y="878" width="5" height="124" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="1344" y="876" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Private S3 stores</text>
+<text x="1344" y="910" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Separate Terraform state, kOps state and</text>
+<text x="1344" y="936" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">backup locations; versioning + encryption</text>
+<polyline points="60,1145 1740,1145" fill="none" stroke="#d5deea" stroke-width="3" stroke-linejoin="round"/>
+<text x="60" y="1165" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#172e48">AWS layout is proposed. Current data Deployments remain single-replica; three AZs do not make their data highly available.</text>
+<text x="60" y="1198" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" font-weight="400" fill="#50647a">Solid: application/data path. Dashed: lifecycle, provisioning or egress. RDS, ElastiCache and SQS are outside this first kOps target.</text>
+</svg>

@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+<title id="title">Docker application architecture</title><desc id="desc">Eight containers: five application images and three persistent backing services.. CURRENT SOURCE CONFIGURATION  |  Docker Compose; runtime not re-tested for this document</desc>
+<rect width="1800" height="1250" fill="#f6f8fc"/>
+<rect x="0" y="0" width="1800" height="12" rx="0" fill="#2865bc" stroke="#2865bc" stroke-width="2"/>
+<text x="60" y="38" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">TASKFLOW  /  ARCHITECTURE 01</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="700" fill="#172e48">Docker application architecture</text>
+<text x="60" y="143" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="21" font-weight="400" fill="#50647a">Eight containers: five application images and three persistent backing services.</text>
+<text x="60" y="187" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="700" fill="#b76b13">CURRENT SOURCE CONFIGURATION  |  Docker Compose; runtime not re-tested for this document</text>
+<rect x="60" y="380" width="1680" height="515" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="398" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">COMPOSE BACKEND NETWORK  /  internal: true</text>
+<polyline points="400,290 500,290" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="500.0,290.0 488.1,295.3 488.1,284.7" fill="#2865bc"/>
+<polyline points="825,350 825,445 285,445 285,490" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="285.0,490.0 279.7,478.1 290.3,478.1" fill="#2865bc"/>
+<polyline points="825,350 825,445 695,445 695,490" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="695.0,490.0 689.7,478.1 700.3,478.1" fill="#2865bc"/>
+<polyline points="825,350 825,445 1105,445 1105,490" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1105.0,490.0 1099.7,478.1 1110.3,478.1" fill="#2865bc"/>
+<polyline points="825,350 825,445 1515,445 1515,490" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1515.0,490.0 1509.7,478.1 1520.3,478.1" fill="#2865bc"/>
+<polyline points="285,625 285,680 430,680 430,730" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="430.0,730.0 424.7,718.1 435.3,718.1" fill="#168372"/>
+<polyline points="695,625 695,675 550,675 550,730" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="550.0,730.0 544.7,718.1 555.3,718.1" fill="#168372"/>
+<polyline points="1105,625 1105,655 670,655 670,730" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="670.0,730.0 664.7,718.1 675.3,718.1" fill="#168372"/>
+<polyline points="285,625 285,702 900,702 900,730" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="900.0,730.0 894.7,718.1 905.3,718.1" fill="#7053a2"/>
+<polyline points="1515,625 1515,695 1020,695 1020,730" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1020.0,730.0 1014.7,718.1 1025.3,718.1" fill="#7053a2"/>
+<rect x="60" y="240" width="340" height="110" rx="15" fill="#ffffff" stroke="#71849a" stroke-width="2"/>
+<rect x="75" y="258" width="5" height="74" rx="2" fill="#71849a" stroke="#71849a" stroke-width="1"/>
+<text x="94" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Browser</text>
+<text x="94" y="290" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">127.0.0.1:3000</text>
+<rect x="500" y="240" width="650" height="110" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="515" y="258" width="5" height="74" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="534" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Frontend :3000</text>
+<text x="534" y="290" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Next.js UI + same-origin /api proxy</text>
+<rect x="1230" y="240" width="510" height="110" rx="15" fill="#ffffff" stroke="#71849a" stroke-width="2"/>
+<rect x="1245" y="258" width="5" height="74" rx="2" fill="#71849a" stroke="#71849a" stroke-width="1"/>
+<text x="1264" y="256" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Host-only administration</text>
+<text x="1264" y="290" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">PostgreSQL :5433; RabbitMQ UI :15672</text>
+<rect x="100" y="490" width="370" height="135" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="115" y="508" width="5" height="99" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="134" y="506" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Auth :3001</text>
+<text x="134" y="540" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Node.js / TypeScript</text>
+<rect x="510" y="490" width="370" height="135" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="525" y="508" width="5" height="99" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="544" y="506" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Projects :8080</text>
+<text x="544" y="540" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Java / Spring Boot</text>
+<rect x="920" y="490" width="370" height="135" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="935" y="508" width="5" height="99" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="954" y="506" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Tasks :8081</text>
+<text x="954" y="540" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Go; transactional outbox</text>
+<rect x="1330" y="490" width="370" height="135" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="1345" y="508" width="5" height="99" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="1364" y="506" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Notifications :8000</text>
+<text x="1364" y="540" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Python / FastAPI</text>
+<rect x="275" y="730" width="450" height="130" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="290" y="748" width="5" height="94" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="309" y="746" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">PostgreSQL :5432</text>
+<text x="309" y="780" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">One instance; auth, projects and tasks</text>
+<text x="309" y="806" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">schemas</text>
+<rect x="815" y="730" width="420" height="130" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="830" y="748" width="5" height="94" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="849" y="746" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Redis :6379</text>
+<text x="849" y="780" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Revocable sessions; user feeds and</text>
+<text x="849" y="806" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">event deduplication</text>
+<rect x="1315" y="730" width="380" height="130" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="1330" y="748" width="5" height="94" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="1349" y="746" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">RabbitMQ :5672</text>
+<text x="1349" y="780" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Durable taskflow.notifications queue</text>
+<polyline points="1290,590 1305,590 1305,795 1315,795" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1315.0,795.0 1303.1,800.3 1303.1,789.7" fill="#b76b13"/>
+<polyline points="1515,730 1515,625" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1515.0,625.0 1520.3,636.9 1509.7,636.9" fill="#b76b13"/>
+<rect x="1063" y="862" width="136.4921875" height="28" rx="5" fill="#f6f8fc" stroke="#f6f8fc" stroke-width="1"/>
+<text x="1070" y="866" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="400" fill="#b76b13">AMQP is private</text>
+<polyline points="500,860 500,935" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="500.0,935.0 494.7,923.1 505.3,923.1" fill="#168372"/>
+<polyline points="1025,860 1025,935" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1025.0,935.0 1019.7,923.1 1030.3,923.1" fill="#168372"/>
+<polyline points="1505,860 1505,935" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1505.0,935.0 1499.7,923.1 1510.3,923.1" fill="#168372"/>
+<rect x="275" y="935" width="450" height="105" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="290" y="953" width="5" height="69" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="309" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">postgres-data</text>
+<text x="309" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Named Docker volume</text>
+<rect x="815" y="935" width="420" height="105" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="830" y="953" width="5" height="69" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="849" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">redis-data</text>
+<text x="849" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Named volume; AOF enabled</text>
+<rect x="1315" y="935" width="380" height="105" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="1330" y="953" width="5" height="69" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="1349" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">rabbitmq-data</text>
+<text x="1349" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Named Docker volume</text>
+<polyline points="60,1145 1740,1145" fill="none" stroke="#d5deea" stroke-width="3" stroke-linejoin="round"/>
+<text x="60" y="1165" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#172e48">Browser traffic enters through the frontend. Backend session and project-access checks use private HTTP.</text>
+<text x="60" y="1198" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" font-weight="400" fill="#50647a">Solid arrows: requests, events or data. Sources: docker-compose.yml; frontend/src/lib/server-api.ts. Configuration stays outside images.</text>
+</svg>

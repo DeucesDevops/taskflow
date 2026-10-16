@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+<title id="title">CI and application delivery</title><desc id="desc">Keep validated artifacts traceable from source commit to the eventual Kubernetes deployment.. MIXED STATUS  |  Upper flow exists in CI; the lower delivery flow is proposed</desc>
+<rect width="1800" height="1250" fill="#f6f8fc"/>
+<rect x="0" y="0" width="1800" height="12" rx="0" fill="#2865bc" stroke="#2865bc" stroke-width="2"/>
+<text x="60" y="38" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">TASKFLOW  /  ARCHITECTURE 05</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="700" fill="#172e48">CI and application delivery</text>
+<text x="60" y="143" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="21" font-weight="400" fill="#50647a">Keep validated artifacts traceable from source commit to the eventual Kubernetes deployment.</text>
+<text x="60" y="187" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="700" fill="#b76b13">MIXED STATUS  |  Upper flow exists in CI; the lower delivery flow is proposed</text>
+<rect x="60" y="240" width="1680" height="585" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="258" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">CURRENT GITHUB ACTIONS  /  pull request, main or milestone branch, version tag, manual dispatch</text>
+<polyline points="375,355 460,355" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="460.0,355.0 448.1,360.3 448.1,349.7" fill="#2865bc"/>
+<polyline points="925,355 1010,355" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1010.0,355.0 998.1,360.3 998.1,349.7" fill="#2865bc"/>
+<polyline points="1620,425 1620,485 355,485 355,550" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="355.0,550.0 349.7,538.1 360.3,538.1" fill="#168372"/>
+<polyline points="600,635 700,635" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="700.0,635.0 688.1,640.3 688.1,629.7" fill="#168372"/>
+<polyline points="1190,635 1290,635" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1290.0,635.0 1278.1,640.3 1278.1,629.7" fill="#168372"/>
+<rect x="105" y="300" width="270" height="125" rx="15" fill="#ffffff" stroke="#71849a" stroke-width="2"/>
+<rect x="120" y="318" width="5" height="89" rx="2" fill="#71849a" stroke="#71849a" stroke-width="1"/>
+<text x="139" y="316" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Source commit</text>
+<text x="139" y="350" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Read-only CI</text>
+<text x="139" y="376" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">permissions</text>
+<rect x="460" y="300" width="465" height="125" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="475" y="318" width="5" height="89" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="494" y="316" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Required source gates</text>
+<text x="494" y="350" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Workflow lint; 5 language checks; Semgrep;</text>
+<text x="494" y="376" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Trivy repository scan</text>
+<rect x="1010" y="300" width="670" height="125" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="1025" y="318" width="5" height="89" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="1044" y="316" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Five production image builds</text>
+<text x="1044" y="350" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Frontend / Auth / Projects / Tasks / Notifications</text>
+<rect x="105" y="550" width="495" height="175" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="120" y="568" width="5" height="139" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="139" y="566" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Image evidence + policy</text>
+<text x="139" y="600" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Syft SPDX SBOM; Trivy SARIF; block</text>
+<text x="139" y="626" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">HIGH/CRITICAL; export scanned images</text>
+<rect x="700" y="550" width="490" height="175" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="715" y="568" width="5" height="139" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="734" y="566" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Full-stack integration</text>
+<text x="734" y="600" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Load exact archives; no rebuild; smoke, isolation,</text>
+<text x="734" y="626" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Redis, hardening and restart checks</text>
+<rect x="1290" y="550" width="390" height="175" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="1305" y="568" width="5" height="139" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="1324" y="566" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Retained results</text>
+<text x="1324" y="600" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Security reports + temporary image</text>
+<text x="1324" y="626" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">archives; SonarQube optional</text>
+<rect x="60" y="875" width="1680" height="225" rx="21" fill="#fff5e7" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="893" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#b76b13">PROPOSED CD  /  implement after cluster and registry prerequisites</text>
+<polyline points="405,1000 455,1000" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="455.0,1000.0 443.1,1005.3 443.1,994.7" fill="#b76b13"/>
+<polyline points="850,1000 900,1000" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="900.0,1000.0 888.1,1005.3 888.1,994.7" fill="#b76b13"/>
+<polyline points="1260,1000 1310,1000" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1310.0,1000.0 1298.1,1005.3 1298.1,994.7" fill="#b76b13"/>
+<rect x="105" y="935" width="300" height="125" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="120" y="953" width="5" height="89" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="139" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">GitHub OIDC</text>
+<text x="139" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Scoped AWS publisher role</text>
+<rect x="455" y="935" width="395" height="125" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="470" y="953" width="5" height="89" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="489" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">ECR image promotion</text>
+<text x="489" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Commit SHA + digest; preserve tested</text>
+<text x="489" y="1011" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">artifact</text>
+<rect x="900" y="935" width="360" height="125" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="915" y="953" width="5" height="89" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="934" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Deploy to Kubernetes</text>
+<text x="934" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Private API access; scoped RBAC</text>
+<rect x="1310" y="935" width="370" height="125" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="1325" y="953" width="5" height="89" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="1344" y="951" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Verify + promote</text>
+<text x="1344" y="985" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Rollout and smoke; production</text>
+<text x="1344" y="1011" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">approval; rollback</text>
+<polyline points="60,1145 1740,1145" fill="none" stroke="#d5deea" stroke-width="3" stroke-linejoin="round"/>
+<text x="60" y="1165" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#172e48">Current CI publishes GitHub workflow artifacts only. It does not push a registry image or deploy infrastructure.</text>
+<text x="60" y="1198" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" font-weight="400" fill="#50647a">Solid: implemented job flow. Dashed: proposed delivery. Sources: .github/workflows/ci.yml; docs/continuous-integration.md.</text>
+</svg>

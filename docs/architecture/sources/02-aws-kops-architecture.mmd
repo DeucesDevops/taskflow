@@ -1,0 +1,25 @@
+flowchart TB
+  Browser["User: HTTPS 443"] --> ALB["Public ALB with ACM certificate"]
+  DNS["Application DNS: taskflow.deuces.dev"] -. "resolves" .-> ALB
+  subgraph VPC["Proposed AWS VPC across three AZs"]
+    subgraph Public["Public utility subnets"]
+      ALB
+      NAT["NAT egress via Internet Gateway"]
+    end
+    subgraph Private["Private EC2 cluster nodes"]
+      CP["kOps control plane and etcd: three nodes in HA profile"]
+      NGINX["NodePort to F5 NGINX"] --> F["Next.js frontend"]
+      F --> Apps["Auth / Projects / Tasks / Notifications"]
+      Apps --> Data["Single-replica PostgreSQL / Redis / RabbitMQ"]
+      Data --> EBS["Three encrypted gp3 EBS claims"]
+      CP -. "manages" .-> Apps
+      Apps -. "outbound pulls" .-> NAT
+    end
+    ALB -->|"instance targets and HTTP"| NGINX
+  end
+  NAT -.-> Registry["Current Docker Hub; ECR proposed"]
+  Kops["kOps CLI and restricted API access"] -. "cluster lifecycle" .-> CP
+  Addons["AWS Load Balancer Controller and EBS CSI with IAM"] -.-> ALB
+  Addons -.-> EBS
+  Kops -.-> State["Private S3 kOps state; separate Terraform state"]
+  Data -. "proposed independent backups" .-> Backups["Protected backup storage"]

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+<title id="title">Platform operations and recovery</title><desc id="desc">Separate resource ownership, credentials, application data and cluster recovery.. PROPOSED OPERATING MODEL  |  Current local controls and remaining AWS work are recorded in the plan</desc>
+<rect width="1800" height="1250" fill="#f6f8fc"/>
+<rect x="0" y="0" width="1800" height="12" rx="0" fill="#2865bc" stroke="#2865bc" stroke-width="2"/>
+<text x="60" y="38" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">TASKFLOW  /  ARCHITECTURE 06</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="700" fill="#172e48">Platform operations and recovery</text>
+<text x="60" y="143" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="21" font-weight="400" fill="#50647a">Separate resource ownership, credentials, application data and cluster recovery.</text>
+<text x="60" y="187" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="700" fill="#b76b13">PROPOSED OPERATING MODEL  |  Current local controls and remaining AWS work are recorded in the plan</text>
+<rect x="60" y="240" width="530" height="850" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="258" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">PROVISION + MAINTAIN</text>
+<rect x="635" y="240" width="530" height="850" rx="21" fill="#f3effa" stroke="#cbd7e4" stroke-width="2"/>
+<text x="659" y="258" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#7053a2">CONFIGURE + OBSERVE</text>
+<rect x="1210" y="240" width="530" height="850" rx="21" fill="#eaf7f2" stroke="#cbd7e4" stroke-width="2"/>
+<text x="1234" y="258" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#168372">BACK UP + RECOVER</text>
+<polyline points="325,455 325,515" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="325.0,515.0 319.7,503.1 330.3,503.1" fill="#2865bc"/>
+<polyline points="325,705 325,765" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="325.0,765.0 319.7,753.1 330.3,753.1" fill="#2865bc"/>
+<polyline points="900,455 900,515" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="900.0,515.0 894.7,503.1 905.3,503.1" fill="#7053a2"/>
+<polyline points="900,705 900,765" fill="none" stroke="#7053a2" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="900.0,765.0 894.7,753.1 905.3,753.1" fill="#7053a2"/>
+<polyline points="1475,455 1475,515" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1475.0,515.0 1469.7,503.1 1480.3,503.1" fill="#168372"/>
+<polyline points="1475,705 1475,765" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1475.0,765.0 1469.7,753.1 1480.3,753.1" fill="#168372"/>
+<rect x="90" y="310" width="470" height="145" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="105" y="328" width="5" height="109" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="124" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Terraform foundation</text>
+<text x="124" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">VPC, subnet routes, NAT, ECR, state storage,</text>
+<text x="124" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">IAM integrations; proposed</text>
+<rect x="90" y="515" width="470" height="190" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="105" y="533" width="5" height="154" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="124" y="531" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">kOps cluster lifecycle</text>
+<text x="124" y="565" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">EC2 control plane and workers; etcd; cluster</text>
+<text x="124" y="591" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">IAM and API endpoint. Review changes and</text>
+<text x="124" y="617" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">validate after rolling updates.</text>
+<rect x="90" y="765" width="470" height="230" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="105" y="783" width="5" height="194" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="124" y="781" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Workloads and addons</text>
+<text x="124" y="815" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Plain application YAML today. Optional</text>
+<text x="124" y="841" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">application Helm chart later. Give every addon</text>
+<text x="124" y="867" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">one owner: kOps or Helm.</text>
+<rect x="665" y="310" width="470" height="145" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="680" y="328" width="5" height="109" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="699" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Managed runtime secrets</text>
+<text x="699" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Proposed Secrets Manager -&gt; External Secrets</text>
+<text x="699" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Operator -&gt; Kubernetes Secret</text>
+<rect x="665" y="515" width="470" height="190" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="680" y="533" width="5" height="154" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="699" y="531" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Application configuration</text>
+<text x="699" y="565" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">ConfigMap + Secret -&gt; environment. Restart</text>
+<text x="699" y="591" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">workloads after changes; rotate actual database</text>
+<text x="699" y="617" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">and broker credentials too.</text>
+<rect x="665" y="765" width="470" height="230" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="680" y="783" width="5" height="194" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="699" y="781" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Metrics, logs and alerts</text>
+<text x="699" y="815" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Proposed: application errors, readiness, outbox</text>
+<text x="699" y="841" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">age, queue depth, Redis memory, nodes, etcd</text>
+<text x="699" y="867" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">and backup failures.</text>
+<rect x="1240" y="310" width="470" height="145" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="1255" y="328" width="5" height="109" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="1274" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Different recovery assets</text>
+<text x="1274" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Terraform state; kOps state; etcd backup; SQL</text>
+<text x="1274" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">backup; Redis and RabbitMQ recovery data</text>
+<rect x="1240" y="515" width="470" height="190" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="1255" y="533" width="5" height="154" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="1274" y="531" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Protected backup locations</text>
+<text x="1274" y="565" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Encrypted, access-restricted stores; retention</text>
+<text x="1274" y="591" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">and recovery objectives; independent of worker</text>
+<text x="1274" y="617" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">disks and PVC lifetimes</text>
+<rect x="1240" y="765" width="470" height="230" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="1255" y="783" width="5" height="194" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="1274" y="781" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">Prove restoration</text>
+<text x="1274" y="815" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Restore in isolation; validate task records and</text>
+<text x="1274" y="841" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">notification behavior; record RPO/RTO. Retain</text>
+<text x="1274" y="867" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">storage is not a backup.</text>
+<polyline points="60,1145 1740,1145" fill="none" stroke="#d5deea" stroke-width="3" stroke-linejoin="round"/>
+<text x="60" y="1165" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#172e48">Current: ignored local .env; Kubernetes Secret template; persistent volumes; health probes; CI hardening checks.</text>
+<text x="60" y="1198" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" font-weight="400" fill="#50647a">Target: managed secrets, workload IAM, observability and tested restores. Cluster backups do not contain PostgreSQL volume data.</text>
+</svg>

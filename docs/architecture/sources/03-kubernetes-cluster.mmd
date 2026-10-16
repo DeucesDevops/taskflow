@@ -1,0 +1,27 @@
+flowchart TB
+  ALB["AWS ALB with ACM - prerequisite"] --> NGINX["nginx-ingress namespace: F5 NGINX NodePort and controller"]
+  NGINX --> Ingress["frontend-ingress: class nginx"]
+  subgraph Namespace["taskflow namespace: current plain YAML"]
+    Ingress --> F["frontend ClusterIP:3000 and Deployment"]
+    F --> A["auth-service ClusterIP:3001 and Deployment"]
+    F --> P["project-service ClusterIP:8080 and Deployment"]
+    F --> T["task-service ClusterIP:8081 and Deployment"]
+    F --> N["notification-service ClusterIP:8000 and Deployment"]
+    A --> DB["postgres ClusterIP:5432 and Deployment"]
+    P --> DB
+    T --> DB
+    A --> R["redis ClusterIP:6379 and Deployment"]
+    N --> R
+    T --> Q["rabbitmq ClusterIP:5672 and Deployment"]
+    Q --> N
+    DB --> DP["postgres-data: 3Gi RWO"]
+    R --> RP["redis-data: 3Gi RWO"]
+    Q --> QP["rabbitmq-data: 3Gi RWO"]
+    Config["taskflow-config and taskflow-secrets"] -. "runtime environment" .-> F
+    Config -. "runtime environment" .-> A
+  end
+  Class["taskflow-gp3: encrypted; Retain; WaitForFirstConsumer"] -.-> DP
+  Class -.-> RP
+  Class -.-> QP
+  Policy["All 8 Deployments: one replica and Recreate"]
+  CSI["EBS CSI and IAM: prerequisite"] -. "provision" .-> Class

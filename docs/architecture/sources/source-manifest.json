@@ -1,0 +1,188 @@
+{
+  "reviewed_date": "2026-10-16",
+  "application_root": "/Users/bernardboateng/Desktop/Projects/DevOps/taskflow",
+  "commit": "1be7a60dedab3d76a619a0ad3bd33e91b6e06b81",
+  "scope": "Static source review only. No deployment, runtime test or cloud account verification.",
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "5c5890fb1e8df4287faf4bc8b8f4125e2de6210d931329e2b31d27507a2b0339"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "cc7dafae1b3e7ab377a3d131e0f98619d48fac8f5c323d3e5ca5cf08fcc61e26"
+    },
+    {
+      "path": "README.md",
+      "sha256": "659fd4b95bc78a658ca36b6b46506f4aab783e48f1290278008360a782c6c4be"
+    },
+    {
+      "path": "auth-service/Dockerfile",
+      "sha256": "571b110d70be7f742df5793fb3ab50f8b4bed08db7d7de5d5397c34bf33a232f"
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "d8f5d340a02b8353784905b756f4b7ae58e9a6079bb07be3413bf39c2ddaf6ca"
+    },
+    {
+      "path": "docs/api-contract.md",
+      "sha256": "54d65041ab4d2e8f80bf9cc626edffefaf70ef1d63e6559fe69e313a49ac16c6"
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha256": "34c9bc0bca4b765a563ca094e35648490fc68cfa0ef7408033d5a71510c70bcd"
+    },
+    {
+      "path": "docs/continuous-integration.md",
+      "sha256": "940f038a7e3786ed9f1baae1bfff2258359a2a686f1c89a6955e78e4c88329d6"
+    },
+    {
+      "path": "frontend/Dockerfile",
+      "sha256": "2fed264ed92bfcb02077d1c54e9f04c490f57b4e94e50354c8f693c80cdc345e"
+    },
+    {
+      "path": "frontend/src/lib/server-api.ts",
+      "sha256": "c555e68dfe9357780f017eb72edd1820f1d3972b34760381e088f0fc18263918"
+    },
+    {
+      "path": "kubernetes/README.md",
+      "sha256": "24156c103d4a0c95023d7b5bbefd12778a200c1dfcebf2112fa26266e8fb1c4d"
+    },
+    {
+      "path": "kubernetes/alb-ingress.yaml.example",
+      "sha256": "a0f2ad50925b5576286f4c890bc1ce5025418414f5559a0cd706b555df8297ec"
+    },
+    {
+      "path": "kubernetes/auth-service-deployment.yaml",
+      "sha256": "4e6b3c316ab436095e620985b3e719032926427e9b12c9c0ee24d6302809975a"
+    },
+    {
+      "path": "kubernetes/auth-service-service.yaml",
+      "sha256": "be9ac70bd74edb58f14f104037b9ed1150ccbd8151789c94680ec5b909b2fe76"
+    },
+    {
+      "path": "kubernetes/configmap.yaml",
+      "sha256": "14417d2452f4c45f81cac99be4528bc4691a31a86751f3bdd9bcba1d1d89eef5"
+    },
+    {
+      "path": "kubernetes/frontend-deployment.yaml",
+      "sha256": "73a84aeafa3beacc966936298b927d6ec5b037d22c855b51708f5f73a72f5ecb"
+    },
+    {
+      "path": "kubernetes/frontend-ingress.yaml",
+      "sha256": "96ab58efa13170cb205c7563b7c0021b59410769c53aa96462290372b22dd2d3"
+    },
+    {
+      "path": "kubernetes/frontend-service.yaml",
+      "sha256": "cad0e64d8183f186638911c3d252a39b07f640eea4fba7e8ddb8fcbb4fff86ed"
+    },
+    {
+      "path": "kubernetes/namespace.yaml",
+      "sha256": "3e0ac1026a365b4419f6353c929194abcb463b1de04e1e75fd53b87a65c04910"
+    },
+    {
+      "path": "kubernetes/nginx-controller-values.yaml.example",
+      "sha256": "27ee0068d8d1f2acc9eb425b5b334b91f5350ec7fee0cf2417da0d7e948b6a32"
+    },
+    {
+      "path": "kubernetes/notification-service-deployment.yaml",
+      "sha256": "5e5285b36684087c8ee8fa7ac25ff1f553ae2c8a4b6eaf3195c43017a7735a60"
+    },
+    {
+      "path": "kubernetes/notification-service-service.yaml",
+      "sha256": "0a842d8d110d21ceecc2f44eb182950101b6091dc751b70c6307d983aecee1de"
+    },
+    {
+      "path": "kubernetes/postgres-deployment.yaml",
+      "sha256": "b04cffb1d31f3b3d7ab70e063013c5e21e56031a1ce6b3267ebcb1c2e4c904dc"
+    },
+    {
+      "path": "kubernetes/postgres-pvc.yaml",
+      "sha256": "34bf0d7e429e1c9ca492db49bc5ea293c49fb3fca43bcef72b6149b008c178ae"
+    },
+    {
+      "path": "kubernetes/postgres-service.yaml",
+      "sha256": "b262473d8b24a8a4cf13e2a81d3d8ffe86bca04e0a47de90e74f080087ae98a0"
+    },
+    {
+      "path": "kubernetes/project-service-deployment.yaml",
+      "sha256": "8a6a44a288b16e2817a09ac7c841831186e39028f1ec476ff30a80366e24767d"
+    },
+    {
+      "path": "kubernetes/project-service-service.yaml",
+      "sha256": "4b5397184d769d0518214ce4b6b00b53ec6bf3875d608b906c5e89c64d54652e"
+    },
+    {
+      "path": "kubernetes/rabbitmq-deployment.yaml",
+      "sha256": "c99aa38297a25b2e3b562360076d9b7714aa9d1ae393f9d7d3ef73e094bebaff"
+    },
+    {
+      "path": "kubernetes/rabbitmq-pvc.yaml",
+      "sha256": "5a208cd9171a0f6d469b77ce826213b5d72dbed2ef8ef8b7a445c7ad7e96b7b6"
+    },
+    {
+      "path": "kubernetes/rabbitmq-service.yaml",
+      "sha256": "55b62abd2bcfb6e9f9723314f8ab9410233c7fb287378976aae6b2bcaaccc611"
+    },
+    {
+      "path": "kubernetes/redis-deployment.yaml",
+      "sha256": "d5db0cb259d9ed18e0f6d40902519f4ac9bb7b295b93e347537b62684cac0914"
+    },
+    {
+      "path": "kubernetes/redis-pvc.yaml",
+      "sha256": "0e5e611b734f16e33043e364c299af59ad620562c32527b1c5b17f400f0826bc"
+    },
+    {
+      "path": "kubernetes/redis-service.yaml",
+      "sha256": "bce8d1e07081f5b663f3974213879ae166be4724283eb750694430e21611a017"
+    },
+    {
+      "path": "kubernetes/storage-class.yaml",
+      "sha256": "33f2c690420a6545da784b88206974d49441552daf2f6cdaeb06340764421794"
+    },
+    {
+      "path": "kubernetes/task-service-deployment.yaml",
+      "sha256": "4fa246727a0bf7dbe1c942eae5321300e3de2ca2c6ae6726bf2af972e7aa4a72"
+    },
+    {
+      "path": "kubernetes/task-service-service.yaml",
+      "sha256": "beb2d21dbf38b40dd4c93918d267315dea9fb5450db4669ba6154bf138cfbaf5"
+    },
+    {
+      "path": "notification-service/Dockerfile",
+      "sha256": "585f882afc3d684b46ce292abbc5968b34865c7086d3b7519338858ddd2818c0"
+    },
+    {
+      "path": "notification-service/app/broker.py",
+      "sha256": "422aa43f3e2432051ef0e11601f8343fcc6b322a5468d6b1c632a2a2642add4f"
+    },
+    {
+      "path": "notification-service/app/store.py",
+      "sha256": "d30a7645fcb83bc76f1b522b1443d7f6a300210fc261ead9a294794f484156ba"
+    },
+    {
+      "path": "project-service/Dockerfile",
+      "sha256": "d3aadce888aa47e1f692de91671cdadc9f1ae2f8ca3f976aa98dd5e35c0ad73c"
+    },
+    {
+      "path": "scripts/setup.sh",
+      "sha256": "1081e9fe5802f68656201e45f1a6b8a01e1b7bcbb7f38645e7bf4f0c7e46d9de"
+    },
+    {
+      "path": "task-service/Dockerfile",
+      "sha256": "14c653f3e840d25400aaffe080158b32474f4b5d052df60e9dba66a4afec8949"
+    },
+    {
+      "path": "task-service/internal/broker/rabbitmq.go",
+      "sha256": "65799cf4732be48d2720c39564f659c39c38c08221a5d59bbf87da444de56cf4"
+    },
+    {
+      "path": "task-service/internal/outbox/worker.go",
+      "sha256": "a50091f7a691f96eb2f43a8dfa32f1826dec88805021054a838c169ec917040f"
+    },
+    {
+      "path": "task-service/internal/store/postgres.go",
+      "sha256": "6702275e8d30f045a01ec72b9e7cbb32c1a81b8e5c40cbe705ba06e76bc70654"
+    }
+  ]
+}
