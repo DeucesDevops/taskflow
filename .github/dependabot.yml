@@ -1,0 +1,94 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /auth-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: maven
+    directory: /project-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /task-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /notification-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /auth-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /project-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /task-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /notification-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/bootstrap
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/network
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/cluster
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/registry
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/dns
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/storage
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/identity
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/platform
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/postgres
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/modules/redis
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/environments/dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: terraform
+    directory: /terraform/environments/production
+    schedule:
+      interval: weekly

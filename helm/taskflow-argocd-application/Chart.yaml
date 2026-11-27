@@ -1,0 +1,6 @@
+apiVersion: v2
+name: taskflow-argocd-application
+description: Argo CD Application that syncs the TaskFlow chart
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

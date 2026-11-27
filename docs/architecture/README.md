@@ -1,6 +1,6 @@
 # TaskFlow architecture diagrams
 
-[Documentation index](../README.md) · [Application architecture](../architecture.md)
+[Documentation index](../README.md) · [Application architecture](../ARCHITECTURE.md)
 
 These diagrams describe the local Docker Compose application. Blue is application traffic, green is persistence, purple is session and configuration data, and orange is messaging.
 

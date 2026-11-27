@@ -1,0 +1,11 @@
+metadata:
+  name: "Storage accounts block public nested items"
+  id: "CKV_TF_CUSTOM_1"
+  category: "STORAGE"
+definition:
+  cond_type: "attribute"
+  resource_types:
+    - "azurerm_storage_account"
+  attribute: "allow_nested_items_to_be_public"
+  operator: "equals"
+  value: false

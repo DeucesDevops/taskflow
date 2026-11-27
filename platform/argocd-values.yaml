@@ -1,0 +1,24 @@
+crds:
+  install: true
+global:
+  domain: argocd.example.com
+server:
+  replicas: 2
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: argocd.example.com
+    tls: true
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+configs:
+  params:
+    server.insecure: "true"
+  cm:
+    timeout.reconciliation: 180s
+controller:
+  replicas: 1
+repoServer:
+  replicas: 2
+applicationSet:
+  enabled: true

@@ -1,0 +1,30 @@
+config:
+  sessionCookieSecure: "true"
+
+image:
+  registry: example.azurecr.io
+
+ingress:
+  host: app.example.com
+
+services:
+  frontend:
+    replicas: 2
+    image:
+      tag: "dev"
+  auth-service:
+    replicas: 2
+    image:
+      tag: "dev"
+  project-service:
+    replicas: 2
+    image:
+      tag: "dev"
+  task-service:
+    replicas: 2
+    image:
+      tag: "dev"
+  notification-service:
+    replicas: 2
+    image:
+      tag: "dev"

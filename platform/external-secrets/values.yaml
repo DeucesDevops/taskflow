@@ -1,0 +1,19 @@
+installCRDs: true
+serviceAccount:
+  create: true
+  name: external-secrets
+  labels:
+    azure.workload.identity/use: "true"
+podLabels:
+  azure.workload.identity/use: "true"
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Exists
+webhook:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Exists
+certController:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Exists
