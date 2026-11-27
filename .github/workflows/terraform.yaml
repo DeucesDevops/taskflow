@@ -1,0 +1,159 @@
+name: Terraform
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - name: terraform fmt
+        run: terraform fmt -check -recursive terraform
+
+  validate:
+    name: Validate ${{ matrix.path }}
+    needs: fmt
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - terraform/bootstrap
+          - terraform/modules/network
+          - terraform/modules/cluster
+          - terraform/modules/registry
+          - terraform/modules/dns
+          - terraform/modules/storage
+          - terraform/modules/identity
+          - terraform/modules/platform
+          - terraform/modules/postgres
+          - terraform/modules/redis
+          - terraform/environments/dev
+          - terraform/environments/production
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - name: Init and validate
+        working-directory: ${{ matrix.path }}
+        run: |
+          set -euo pipefail
+          terraform init -backend=false -input=false
+          terraform validate
+
+  azure-creds:
+    name: Azure credential check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.check.outputs.plan }}
+    steps:
+      - name: Decide whether plan can run
+        id: check
+        env:
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          STATE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+          STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+          STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+        run: |
+          set -euo pipefail
+          if [ -n "${CLIENT_ID}" ] && [ -n "${TENANT_ID}" ] && [ -n "${SUBSCRIPTION_ID}" ] && [ -n "${STATE_ACCOUNT}" ] && [ -n "${STATE_RESOURCE_GROUP}" ] && [ -n "${STATE_CONTAINER}" ]; then
+            echo "plan=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "plan=false" >> "${GITHUB_OUTPUT}"
+            echo "Terraform plan skipped: Azure OIDC or the state storage configuration is not set." >> "${GITHUB_STEP_SUMMARY}"
+          fi
+
+  plan:
+    name: Plan ${{ matrix.environment }}
+    needs:
+      - validate
+      - azure-creds
+    if: github.event_name == 'pull_request' && needs.azure-creds.outputs.plan == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - production
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      TF_VAR_postgres_administrator_password: ${{ secrets.TF_VAR_POSTGRES_ADMINISTRATOR_PASSWORD }}
+    defaults:
+      run:
+        working-directory: terraform/environments/${{ matrix.environment }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Azure login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - name: Write backend config
+        env:
+          STATE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+          STATE_RESOURCE_GROUP: ${{ vars.TF_STATE_RESOURCE_GROUP }}
+          STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+          ENVIRONMENT: ${{ matrix.environment }}
+        run: |
+          set -euo pipefail
+          cat > backend.hcl <<EOF
+          resource_group_name  = "${STATE_RESOURCE_GROUP}"
+          storage_account_name = "${STATE_ACCOUNT}"
+          container_name       = "${STATE_CONTAINER}"
+          key                  = "${ENVIRONMENT}.tfstate"
+          use_oidc             = true
+          use_azuread_auth     = true
+          EOF
+      - name: Plan
+        env:
+          DOMAIN_NAME: ${{ vars.TF_DOMAIN_NAME }}
+          POSTGRES_PASSWORD: ${{ secrets.TF_VAR_POSTGRES_ADMINISTRATOR_PASSWORD }}
+        run: |
+          set -euo pipefail
+          domain="${DOMAIN_NAME:-example.com}"
+          extra=()
+          if [ -z "${POSTGRES_PASSWORD}" ]; then
+            extra+=(-var enable_managed_postgres=false)
+            echo "Managed Postgres omitted from this plan because TF_VAR_POSTGRES_ADMINISTRATOR_PASSWORD is not set." >> "${GITHUB_STEP_SUMMARY}"
+          fi
+          terraform init -input=false -backend-config=backend.hcl
+          terraform plan -input=false -var "domain_name=${domain}" "${extra[@]}"

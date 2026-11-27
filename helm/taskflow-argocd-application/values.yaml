@@ -1,0 +1,9 @@
+name: taskflow
+namespace: argocd
+project: default
+repoURL: https://github.com/DeucesDevops/taskflow
+targetRevision: dev
+chartPath: helm/taskflow
+destinationNamespace: taskflow
+environment: production
+automated: true

@@ -1,0 +1,22 @@
+# Let's Encrypt DNS-01 via Azure DNS and the cert-manager workload identity.
+# scripts/apply-environment.sh renders the ${...} placeholders. example.com is
+# the example domain only; the real zone comes from domain_name.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: ${ACME_EMAIL}
+    privateKeySecretRef:
+      name: letsencrypt-production-account-key
+    solvers:
+      - dns01:
+          azureDNS:
+            hostedZoneName: ${DOMAIN_NAME}
+            resourceGroupName: ${DNS_RESOURCE_GROUP}
+            subscriptionID: ${AZURE_SUBSCRIPTION_ID}
+            environment: AzurePublicCloud
+            managedIdentity:
+              clientID: ${CERT_MANAGER_CLIENT_ID}

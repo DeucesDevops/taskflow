@@ -19,7 +19,7 @@ One Docker Compose command runs the application and its local data services.
 
 The browser calls the frontend only. Backend URLs stay on the server. Auth owns identity. Projects enforce access. Tasks check membership through the project service, commit notification events in the same database transaction, and publish them to RabbitMQ. The notification service consumes that queue into Redis.
 
-See [architecture](docs/architecture.md) and the [API contract](docs/api-contract.md).
+See [architecture](docs/ARCHITECTURE.md) and the [API contract](docs/api-contract.md).
 
 ## Run locally
 
@@ -45,6 +45,23 @@ docker compose down
 ```
 
 `docker compose down` keeps named volumes. `docker compose down --volumes` deletes this project's local data, including sessions and queued messages. Changing a database or broker password after the first start does not rewrite an existing volume.
+
+## Deployment
+
+The Azure platform is Terraform, Helm, and GitHub Actions. AKS runs the five application containers. PostgreSQL Flexible Server and Azure Cache for Redis are optional managed modules. RabbitMQ runs in the cluster. The default region is `uksouth`. The public domain is a Terraform variable; `example.com` in the example tfvars is not a real zone.
+
+```sh
+export TF_VAR_subscription_id="<subscription-guid>"
+export TF_VAR_tenant_id="<tenant-guid>"
+BOOTSTRAP_CONFIRM=apply ./scripts/bootstrap-state.sh
+make plan ENV=dev
+APPLY_CONFIRM=apply make apply ENV=dev
+make kubeconfig ENV=dev
+```
+
+`make validate` checks formatting and runs `terraform validate` on every module and both environment roots. Apply is two-stage so the cluster exists before Helm. GitHub Actions signs in with OIDC federated credentials and does not use a client secret. Production image tags change only after the `production` environment approval, and Argo CD syncs `helm/taskflow`.
+
+Details are in [docs/SETUP.md](docs/SETUP.md), [docs/PIPELINE.md](docs/PIPELINE.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Tests
 
@@ -121,8 +138,12 @@ taskflow/
 ├── project-service/       Java projects
 ├── task-service/          Go tasks and outbox
 ├── notification-service/  Python notifications
-├── scripts/               Local .env setup and Compose smoke checks
-├── docs/                  API contract and application architecture
+├── scripts/               Local setup, smoke checks, and Azure workflows
+├── terraform/             Bootstrap, modules, and dev/production roots
+├── helm/                  TaskFlow chart and Argo CD application
+├── platform/              Controller values, issuer, secret store, storage class
+├── observability/         Dashboards, alerts, and SLOs
+├── docs/                  Application docs plus platform setup and ADRs
 ├── docker-compose.yml     Application and local data services
 └── .env.example           Configuration names
 ```

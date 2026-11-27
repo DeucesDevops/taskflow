@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: taskflow
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: taskflow.availability
+      rules:
+        - alert: TaskFlowDeploymentUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="taskflow"} < kube_deployment_spec_replicas{namespace="taskflow"}
+          for: 10m
+          labels:
+            severity: page
+          annotations:
+            summary: "TaskFlow deployment {{ $labels.deployment }} is missing replicas"
+        - alert: TaskFlowPodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="taskflow"}[15m]) > 3
+          for: 5m
+          labels:
+            severity: ticket
+          annotations:
+            summary: "TaskFlow pod {{ $labels.pod }} is restarting"
+        - alert: TaskFlowIngressDown
+          expr: kube_ingress_info{namespace="taskflow", ingress="frontend"} == 0
+          for: 10m
+          labels:
+            severity: page
+          annotations:
+            summary: "TaskFlow frontend ingress is missing"
+    - name: taskflow.dependencies
+      rules:
+        - alert: RabbitMQQueueBacklog
+          expr: rabbitmq_queue_messages_ready{queue="taskflow.notifications"} > 100
+          for: 15m
+          labels:
+            severity: ticket
+          annotations:
+            summary: "Notification queue has a backlog"

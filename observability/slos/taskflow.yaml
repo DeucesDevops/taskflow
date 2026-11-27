@@ -1,0 +1,58 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: taskflow-frontend-availability
+  displayName: TaskFlow frontend availability
+spec:
+  description: The browser-facing frontend answers /ready.
+  service: frontend
+  indicator:
+    metadata:
+      name: frontend-ready
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(kube_pod_status_ready{namespace="taskflow",condition="true",pod=~"frontend-.*"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(kube_pod_status_ready{namespace="taskflow",pod=~"frontend-.*"}[5m]))
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Monthly availability
+      target: 0.995
+---
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: taskflow-notification-freshness
+  displayName: Notification queue freshness
+spec:
+  description: The task notification queue does not sit above 100 ready messages.
+  service: notification-service
+  indicator:
+    metadata:
+      name: queue-depth
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: max(rabbitmq_queue_messages_ready{queue="taskflow.notifications"})
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Queue stays drainable
+      target: 0.99
+      op: lt
+      value: 100

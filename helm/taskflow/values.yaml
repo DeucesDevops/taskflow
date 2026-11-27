@@ -1,0 +1,132 @@
+nameOverride: ""
+namespace: taskflow
+
+image:
+  registry: example.azurecr.io
+  pullPolicy: IfNotPresent
+
+config:
+  sessionCookieSecure: "false"
+  demoEmail: alex@example.com
+
+workloadIdentity:
+  clientId: ""
+
+postgres:
+  host: postgres.example.postgres.database.azure.com
+  port: 5432
+  database: taskflow
+  user: taskflow
+  sslmode: require
+
+redis:
+  host: redis.example.redis.cache.windows.net
+  port: 6380
+
+rabbitmq:
+  host: rabbitmq.rabbitmq.svc.cluster.local
+  port: 5672
+  user: taskflow
+  queue: taskflow.notifications
+  connectionSecret: rabbitmq-connection
+  connectionSecretKey: RABBITMQ_URL
+
+ingress:
+  enabled: true
+  className: nginx
+  host: app.example.com
+  clusterIssuer: letsencrypt-production
+
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-key-vault
+    kind: ClusterSecretStore
+  keys:
+    postgresPassword: postgres-password
+    redisUrl: redis-url
+    jwtSecret: jwt-secret
+    demoPassword: demo-password
+
+services:
+  frontend:
+    port: 3000
+    replicas: 1
+    runAsUser: 65532
+    runAsGroup: 65532
+    startupFailureThreshold: 24
+    image:
+      repository: taskflow/frontend
+      tag: dev
+    resources:
+      requests:
+        cpu: 100m
+        memory: 192Mi
+      limits:
+        cpu: 750m
+        memory: 384Mi
+  auth-service:
+    port: 3001
+    replicas: 1
+    runAsUser: 65532
+    runAsGroup: 65532
+    startupFailureThreshold: 18
+    image:
+      repository: taskflow/auth-service
+      tag: dev
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  project-service:
+    port: 8080
+    replicas: 1
+    runAsUser: 10001
+    runAsGroup: 10001
+    startupFailureThreshold: 36
+    image:
+      repository: taskflow/project-service
+      tag: dev
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+  task-service:
+    port: 8081
+    replicas: 1
+    runAsUser: 65532
+    runAsGroup: 65532
+    startupFailureThreshold: 18
+    image:
+      repository: taskflow/task-service
+      tag: dev
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+  notification-service:
+    port: 8000
+    replicas: 1
+    runAsUser: 65532
+    runAsGroup: 65532
+    startupFailureThreshold: 18
+    image:
+      repository: taskflow/notification-service
+      tag: dev
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi

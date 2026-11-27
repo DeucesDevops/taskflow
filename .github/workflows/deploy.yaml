@@ -1,0 +1,95 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag already pushed to ACR
+        required: true
+        type: string
+  workflow_run:
+    workflows:
+      - Build and push images
+    types:
+      - completed
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump production image tags
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dev
+
+      - name: Resolve image tag
+        id: tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ github.event.inputs.image_tag }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            tag="${INPUT_TAG}"
+          else
+            tag="${RUN_SHA}"
+          fi
+          case "${tag}" in
+            "" | *[!A-Za-z0-9._-]*)
+              echo "Refusing image tag." >&2
+              exit 1
+              ;;
+          esac
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: Update Helm values
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          path = pathlib.Path("helm/taskflow/values-production.yaml")
+          tag = os.environ["IMAGE_TAG"]
+          text = path.read_text()
+          updated, count = re.subn(
+              r'(?m)^(\s+tag:\s*)"[^"]*"',
+              lambda match: f'{match.group(1)}"{tag}"',
+              text,
+          )
+          if count != 5:
+              raise SystemExit(f"expected 5 image tags, updated {count}")
+          path.write_text(updated)
+          PY
+
+      - name: Commit tag bump for Argo CD
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "DeucesDevops"
+          git config user.email "macroni607@gmail.com"
+          git add helm/taskflow/values-production.yaml
+          if git diff --cached --quiet; then
+            echo "Production image tags already match ${IMAGE_TAG}."
+            exit 0
+          fi
+          git commit -m "chore: bump production image tags to ${IMAGE_TAG}"
+          git push origin HEAD:dev
