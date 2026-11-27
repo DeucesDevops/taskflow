@@ -12,7 +12,7 @@ Internal backend ports: auth 3001, projects 8080, tasks 8081, notifications 8000
 - GET /auth/me with Authorization: Bearer TOKEN -> `{user:{id,name,email}}` (401 invalid, 503 unavailable).
 - POST /auth/logout with bearer token -> 204.
 - GET /auth/users?email=... and GET /auth/users/{id} return public profiles to authenticated service callers.
-- Demo identity seeded in Postgres: UUID 11111111-1111-4111-8111-111111111111, name Alex Morgan; default email alex@taskflow.local, password taskflow-local-demo. Configurable via DEMO_EMAIL and DEMO_PASSWORD.
+- A bootstrap user may be seeded from DEMO_EMAIL and DEMO_PASSWORD. Existing seed rows are not overwritten. Additional accounts are created with POST /auth/register.
 - AUTH_SERVICE_URL=http://auth-service:3001. Downstream services validate incoming bearer tokens through /auth/me using bounded timeouts; never trust browser-supplied user IDs.
 
 ## Projects
