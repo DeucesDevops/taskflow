@@ -1,0 +1,6 @@
+resource_group_name  = "rg-taskflow-tfstate"
+storage_account_name = "sttaskflowtfstate"
+container_name       = "tfstate"
+key                  = "dev.tfstate"
+use_oidc             = true
+use_azuread_auth     = true

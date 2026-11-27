@@ -1,0 +1,11 @@
+# Existing application lockfile findings. The platform layer does not add these.
+# Remove an entry when that dependency is upgraded.
+GHSA-2464-fhr4-w9xw
+GHSA-673q-mjm6-r5xr
+GHSA-vcvr-r3jv-pc5j
+GHSA-wq5f-xc86-pv6w
+GHSA-6q48-6c7w-9gw2
+CVE-2026-94482
+CVE-2026-94483
+CVE-2026-93749
+CVE-2026-56851

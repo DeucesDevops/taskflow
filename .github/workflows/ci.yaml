@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  service:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ${{ matrix.working-directory }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: frontend
+            working-directory: frontend
+            setup: node
+            cache-dependency-path: frontend/package-lock.json
+            install: npm ci --no-audit --no-fund
+            lint: npm run typecheck
+            typecheck: npm run typecheck
+            test: npm test
+          - name: auth-service
+            working-directory: auth-service
+            setup: node
+            cache-dependency-path: auth-service/package-lock.json
+            install: npm ci --no-audit --no-fund
+            lint: npm run typecheck
+            typecheck: npm run typecheck
+            test: npm test
+          - name: project-service
+            working-directory: project-service
+            setup: java
+            cache-dependency-path: project-service/pom.xml
+            install: none
+            lint: mvn --batch-mode --no-transfer-progress -DskipTests validate
+            typecheck: mvn --batch-mode --no-transfer-progress -DskipTests compiler:compile
+            test: mvn --batch-mode --no-transfer-progress verify
+          - name: task-service
+            working-directory: task-service
+            setup: go
+            cache-dependency-path: task-service/go.sum
+            install: none
+            lint: test -z "$(gofmt -l .)" && go vet ./...
+            typecheck: CGO_ENABLED=0 go build -trimpath -o /tmp/task-service ./cmd/server
+            test: go test -race -count=1 ./...
+          - name: notification-service
+            working-directory: notification-service
+            setup: python
+            cache-dependency-path: notification-service/requirements.txt
+            install: python -m pip install --disable-pip-version-check --require-hashes -r requirements.txt
+            lint: python -m compileall -q app
+            typecheck: python -m compileall -q app
+            test: python -m unittest discover -s tests -v
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        if: matrix.setup == 'node'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.21.0"
+          cache: npm
+          cache-dependency-path: ${{ matrix.cache-dependency-path }}
+
+      - name: Set up Java
+        if: matrix.setup == 'java'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: ${{ matrix.cache-dependency-path }}
+
+      - name: Set up Go
+        if: matrix.setup == 'go'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26.6"
+          cache-dependency-path: ${{ matrix.cache-dependency-path }}
+
+      - name: Set up Python
+        if: matrix.setup == 'python'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: ${{ matrix.cache-dependency-path }}
+
+      - name: Install
+        if: matrix.install != 'none'
+        run: ${{ matrix.install }}
+
+      - name: Lint
+        run: ${{ matrix.lint }}
+
+      - name: Typecheck
+        run: ${{ matrix.typecheck }}
+
+      - name: Test
+        run: ${{ matrix.test }}

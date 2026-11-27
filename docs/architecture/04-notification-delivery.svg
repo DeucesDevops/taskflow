@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+<title id="title">Durable notification delivery</title><desc id="desc">Transactional outbox, RabbitMQ publisher confirmations and a Redis-backed activity feed.. IMPLEMENTED PATH  |  At-least-once messaging; deduplication is bounded by a seven-day Redis TTL</desc>
+<rect width="1800" height="1250" fill="#f6f8fc"/>
+<rect x="0" y="0" width="1800" height="12" rx="0" fill="#2865bc" stroke="#2865bc" stroke-width="2"/>
+<text x="60" y="38" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">TASKFLOW  /  ARCHITECTURE 04</text>
+<text x="60" y="77" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="46" font-weight="700" fill="#172e48">Durable notification delivery</text>
+<text x="60" y="143" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="21" font-weight="400" fill="#50647a">Transactional outbox, RabbitMQ publisher confirmations and a Redis-backed activity feed.</text>
+<text x="60" y="187" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="700" fill="#b76b13">IMPLEMENTED PATH  |  At-least-once messaging; deduplication is bounded by a seven-day Redis TTL</text>
+<rect x="60" y="240" width="1680" height="300" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="258" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">WRITE PATH  /  browser -&gt; Next.js API -&gt; task-service</text>
+<rect x="60" y="600" width="1680" height="320" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="618" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">DELIVERY PATH  /  asynchronous consumer</text>
+<rect x="60" y="980" width="1680" height="120" rx="21" fill="#edf4ff" stroke="#cbd7e4" stroke-width="2"/>
+<text x="84" y="998" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#2865bc">READ PATH  /  browser activity panel</text>
+<polyline points="450,380 520,380" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="520.0,380.0 508.1,385.3 508.1,374.7" fill="#2865bc"/>
+<polyline points="980,380 1050,380" fill="none" stroke="#2865bc" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1050.0,380.0 1038.1,385.3 1038.1,374.7" fill="#2865bc"/>
+<polyline points="450,755 520,755" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="520.0,755.0 508.1,760.3 508.1,749.7" fill="#b76b13"/>
+<polyline points="1000,755 1070,755" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1070.0,755.0 1058.1,760.3 1058.1,749.7" fill="#b76b13"/>
+<polyline points="1370,485 1370,570 255,570 255,675" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="255.0,675.0 249.7,663.1 260.3,663.1" fill="#b76b13"/>
+<rect x="628" y="545" width="346.5" height="28" rx="5" fill="#f6f8fc" stroke="#f6f8fc" stroke-width="1"/>
+<text x="635" y="549" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="400" fill="#b76b13">persistent message + publisher confirmation</text>
+<polyline points="1260,485 1260,550 750,550 750,485" fill="none" stroke="#168372" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="750.0,485.0 755.3,496.9 744.7,496.9" fill="#168372"/>
+<rect x="763" y="514" width="205.5" height="28" rx="5" fill="#f6f8fc" stroke="#f6f8fc" stroke-width="1"/>
+<text x="770" y="518" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="400" fill="#168372">confirm -&gt; mark delivered</text>
+<polyline points="1550,485 1550,585 1600,585 1600,485" fill="none" stroke="#b76b13" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8 7"/>
+<polygon points="1600.0,485.0 1605.3,496.9 1594.7,496.9" fill="#b76b13"/>
+<rect x="1343" y="548" width="122.0" height="28" rx="5" fill="#f6f8fc" stroke="#f6f8fc" stroke-width="1"/>
+<text x="1350" y="552" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="17" font-weight="400" fill="#b76b13">retry on failure</text>
+<rect x="105" y="310" width="345" height="175" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="120" y="328" width="5" height="139" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="139" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">1. Task mutation</text>
+<text x="139" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Validate session and project</text>
+<text x="139" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">membership before writing</text>
+<rect x="520" y="310" width="460" height="175" rx="15" fill="#eaf7f2" stroke="#168372" stroke-width="2"/>
+<rect x="535" y="328" width="5" height="139" rx="2" fill="#168372" stroke="#168372" stroke-width="1"/>
+<text x="554" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">2. One SQL transaction</text>
+<text x="554" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Task change + outbox event commit together</text>
+<text x="554" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">in PostgreSQL</text>
+<rect x="1050" y="310" width="630" height="175" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="1065" y="328" width="5" height="139" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="1084" y="326" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">3. Outbox worker</text>
+<text x="1084" y="360" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Claim a lease; publish stable event ID; confirm delivery; retry with</text>
+<text x="1084" y="386" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">backoff after failure</text>
+<rect x="105" y="675" width="345" height="165" rx="15" fill="#fff5e7" stroke="#b76b13" stroke-width="2"/>
+<rect x="120" y="693" width="5" height="129" rx="2" fill="#b76b13" stroke="#b76b13" stroke-width="1"/>
+<text x="139" y="691" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">4. RabbitMQ</text>
+<text x="139" y="725" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Durable queue</text>
+<text x="139" y="751" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">taskflow.notifications</text>
+<rect x="520" y="675" width="480" height="165" rx="15" fill="#edf4ff" stroke="#2865bc" stroke-width="2"/>
+<rect x="535" y="693" width="5" height="129" rx="2" fill="#2865bc" stroke="#2865bc" stroke-width="1"/>
+<text x="554" y="691" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">5. Notification consumer</text>
+<text x="554" y="725" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Validate event; atomically ingest into Redis; ACK</text>
+<text x="554" y="751" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">only after success</text>
+<rect x="1070" y="675" width="610" height="165" rx="15" fill="#f3effa" stroke="#7053a2" stroke-width="2"/>
+<rect x="1085" y="693" width="5" height="129" rx="2" fill="#7053a2" stroke="#7053a2" stroke-width="1"/>
+<text x="1104" y="691" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="23" font-weight="700" fill="#172e48">6. Redis Lua operation</text>
+<text x="1104" y="725" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Deduplicate event ID + prepend user feed; keep latest 100; feed</text>
+<text x="1104" y="751" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">and dedup TTL: 7 days</text>
+<text x="105" y="867" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="19" font-weight="400" fill="#50647a">Storage failure: NACK + requeue. Invalid event: reject without requeue.</text>
+<text x="105" y="1026" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="22" font-weight="700" fill="#172e48">GET /api/notifications  -&gt;  Next.js proxy  -&gt;  notification API  -&gt;  auth validation + Redis feed  -&gt;  JSON UI</text>
+<polyline points="60,1145 1740,1145" fill="none" stroke="#d5deea" stroke-width="3" stroke-linejoin="round"/>
+<text x="60" y="1165" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="18" font-weight="700" fill="#172e48">A crash after publish can cause a replay. Redis suppresses duplicates while its dedup key exists.</text>
+<text x="60" y="1198" dominant-baseline="text-before-edge" font-family="Arial,DejaVu Sans,sans-serif" font-size="16" font-weight="400" fill="#50647a">Redis loss or TTL expiry can remove that protection. No email, SMS, WebSocket or SQS delivery is implemented in this path.</text>
+</svg>

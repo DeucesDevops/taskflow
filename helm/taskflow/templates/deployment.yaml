@@ -1,0 +1,185 @@
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "taskflow.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+  selector:
+    matchLabels:
+      {{- include "taskflow.selector" (dict "root" $ "component" $name) | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "taskflow.selector" (dict "root" $ "component" $name) | nindent 8 }}
+        azure.workload.identity/use: "true"
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
+    spec:
+      serviceAccountName: {{ $name }}
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $svc.runAsUser }}
+        runAsGroup: {{ $svc.runAsGroup }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ $name }}
+          image: {{ printf "%s/%s:%s" $.Values.image.registry $svc.image.repository $svc.image.tag | quote }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $svc.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ $svc.port | quote }}
+            {{- if eq $name "frontend" }}
+            - name: HOSTNAME
+              value: "0.0.0.0"
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:3001
+            - name: PROJECT_SERVICE_URL
+              value: http://project-service:8080
+            - name: TASK_SERVICE_URL
+              value: http://task-service:8081
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:8000
+            - name: SESSION_COOKIE_SECURE
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: SESSION_COOKIE_SECURE
+            {{- else if eq $name "auth-service" }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service
+                  key: REDIS_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service
+                  key: JWT_SECRET
+            - name: DEMO_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: DEMO_EMAIL
+            - name: DEMO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service
+                  key: DEMO_PASSWORD
+            {{- else if eq $name "project-service" }}
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: PROJECT_JDBC_URL
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: project-service
+                  key: DB_PASSWORD
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:3001
+            {{- else if eq $name "task-service" }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: task-service
+                  key: DATABASE_URL
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:3001
+            - name: PROJECT_SERVICE_URL
+              value: http://project-service:8080
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.rabbitmq.connectionSecret }}
+                  key: {{ $.Values.rabbitmq.connectionSecretKey }}
+            - name: RABBITMQ_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: RABBITMQ_QUEUE
+            {{- else if eq $name "notification-service" }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: notification-service
+                  key: REDIS_URL
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:3001
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.rabbitmq.connectionSecret }}
+                  key: {{ $.Values.rabbitmq.connectionSecretKey }}
+            - name: RABBITMQ_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: taskflow-config
+                  key: RABBITMQ_QUEUE
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: {{ $svc.startupFailureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 4
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 4
+            failureThreshold: 3
+          resources:
+            {{- toYaml $svc.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
+{{- end }}

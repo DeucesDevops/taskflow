@@ -1,0 +1,18 @@
+architecture: standalone
+persistence:
+  enabled: true
+  storageClass: managed-csi-premium
+  size: 8Gi
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 750m
+    memory: 512Mi
+metrics:
+  enabled: true
+service:
+  type: ClusterIP
+extraConfiguration: |
+  consumer_timeout = 3600000

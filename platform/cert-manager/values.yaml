@@ -1,0 +1,18 @@
+crds:
+  enabled: true
+serviceAccount:
+  labels:
+    azure.workload.identity/use: "true"
+podLabels:
+  azure.workload.identity/use: "true"
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Exists
+webhook:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Exists
+cainjector:
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Exists

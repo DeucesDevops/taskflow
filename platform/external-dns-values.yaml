@@ -1,0 +1,18 @@
+provider:
+  name: azure
+policy: sync
+registry: txt
+sources:
+  - ingress
+  - service
+domainFilters: []
+serviceAccount:
+  create: true
+  name: external-dns
+  labels:
+    azure.workload.identity/use: "true"
+podLabels:
+  azure.workload.identity/use: "true"
+tolerations:
+  - key: CriticalAddonsOnly
+    operator: Exists

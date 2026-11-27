@@ -1,0 +1,16 @@
+# Example values only. Copy to terraform.tfvars (gitignored) or pass -var.
+# Do not put secret values in this file.
+# Subscription and tenant below are placeholders, not a real account.
+# Set TF_VAR_postgres_administrator_password in the environment when
+# enable_managed_postgres is true. The password must be URL-safe.
+
+environment     = "dev"
+location        = "uksouth"
+name_prefix     = "taskflow"
+domain_name     = "example.com"
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+github_repository = "DeucesDevops/taskflow"
+
+enable_managed_postgres = true
+enable_managed_redis    = true
