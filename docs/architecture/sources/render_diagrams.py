@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild the six TaskFlow architecture SVG/PNG pairs. Requires Pillow only.
+"""Rebuild the TaskFlow application architecture SVG/PNG pairs. Requires Pillow only.
 
 Run from any directory: python3 docs/architecture/sources/render_diagrams.py
 The SVG and PNG are drawn from the same coordinates and text. No network access.
@@ -166,77 +166,6 @@ def docker():
              'Solid arrows: requests, events or data. Sources: docker-compose.yml; frontend/src/lib/server-api.ts. Configuration stays outside images.')
 
 
-def aws():
-    d=Diagram(2,'02-aws-kops-architecture','AWS architecture with kOps',
-              'A proposed AWS foundation around the application\'s current Kubernetes routing and storage model.',
-              'PROPOSED TARGET  |  No kOps spec or Terraform infrastructure was found in the application checkout')
-    d.group(60,370,1200,720,'AWS VPC  /  proposed public and private subnet tiers across three Availability Zones')
-    d.group(90,430,1140,160,'PUBLIC SUBNETS  /  load balancer and outbound egress','orange')
-    d.group(90,620,1140,435,'PRIVATE SUBNETS  /  EC2 Kubernetes nodes managed by kOps')
-    d.edge([(405,290),(500,290)],BLUE)
-    d.edge([(795,345),(795,360),(75,360),(75,520),(135,520)],BLUE)
-    d.edge([(135,545),(105,545),(105,730),(135,730)],BLUE)
-    d.edge([(425,785),(425,835)],BLUE)
-    d.edge([(700,890),(800,890)],GREEN)
-    d.edge([(1020,945),(1020,980)],GREEN)
-    d.edge([(1310,727),(1230,727),(1230,720),(1185,720)],PURPLE,True)
-    d.edge([(1185,890),(1240,890),(1240,925),(1310,925)],GREEN,True)
-    d.edge([(700,875),(750,875),(750,660),(1205,660),(1205,600),(890,600),(890,565)],ORANGE,True)
-    d.label(905,597,'outbound pulls',ORANGE)
-    d.edge([(1040,475),(1040,410),(1485,410),(1485,345)],ORANGE,True)
-    d.edge([(1310,510),(1250,510),(1250,750),(1185,750)],PURPLE,True)
-    d.edge([(800,730),(755,730),(755,810),(425,810),(425,835)],PURPLE,True)
-    d.box(60,240,345,105,'Users','HTTPS :443','neutral')
-    d.box(500,240,590,105,'Application DNS','taskflow.deuces.dev -> ALB; DNS provider to be configured','neutral')
-    d.box(1310,240,430,105,'Image registry','ECR proposed; current tags use Docker Hub','orange')
-    d.box(135,475,580,90,'AWS ALB + ACM','TLS ends here; HTTP to NGINX','orange')
-    d.box(800,475,385,90,'NAT egress + IGW','Registry and required APIs','orange')
-    d.box(135,675,580,110,'NodePort -> F5 NGINX','Routes / to frontend; backends stay private')
-    d.box(800,675,385,110,'Control plane + etcd','3 EC2 nodes for HA target','purple')
-    d.box(135,835,565,110,'Application worker pods','Frontend -> Auth / Projects / Tasks / Notifications')
-    d.box(800,835,385,110,'In-cluster data pods','PostgreSQL / Redis / RabbitMQ','green')
-    d.box(800,980,385,60,'Encrypted gp3 EBS','', 'green')
-    d.box(1310,455,430,145,'Cluster lifecycle','kOps CLI; restricted API endpoint; cluster DNS configured separately','purple')
-    d.box(1310,650,430,155,'Platform prerequisites','Load Balancer Controller; EBS CSI; workload IAM; CNI and CoreDNS','purple')
-    d.box(1310,860,430,160,'Private S3 stores','Separate Terraform state, kOps state and backup locations; versioning + encryption','green')
-    d.footer('AWS layout is proposed. Current data Deployments remain single-replica; three AZs do not make their data highly available.',
-             'Solid: application/data path. Dashed: lifecycle, provisioning or egress. RDS, ElastiCache and SQS are outside this first kOps target.')
-
-
-def kubernetes():
-    d=Diagram(3,'03-kubernetes-cluster','Kubernetes cluster architecture',
-              'Plain YAML: eight single-replica Deployments, eight ClusterIP Services and three persistent claims.',
-              'CURRENT MANIFESTS  |  Static configuration reviewed; cluster deployment remains unverified')
-    d.group(60,430,1190,655,'NAMESPACE  /  taskflow')
-    d.group(1290,240,450,340,'PLATFORM  /  installation prerequisites','purple')
-    d.edge([(355,300),(465,300)],BLUE)
-    d.edge([(1025,300),(1175,300),(1175,500),(890,500),(890,535)],BLUE)
-    for x in (240,525,810,1095):
-        d.edge([(650,615),(650,650),(x,650),(x,695)],BLUE)
-    d.edge([(240,815),(240,845),(260,845),(260,895)],GREEN)
-    d.edge([(525,815),(525,855),(380,855),(380,895)],GREEN)
-    d.edge([(810,815),(810,875),(445,875),(445,895)],GREEN)
-    d.edge([(240,815),(240,865),(580,865),(580,895)],PURPLE)
-    d.edge([(1095,815),(1095,845),(740,845),(740,895)],PURPLE)
-    d.edge([(810,815),(810,880),(1000,880),(1000,895)],ORANGE)
-    d.edge([(1200,970),(1235,970),(1235,835),(1125,835),(1125,815)],ORANGE)
-    d.edge([(1740,410),(1765,410),(1765,925),(1740,925)],PURPLE,True)
-    d.box(60,245,295,110,'AWS ALB','Instance targets; ACM','orange')
-    d.box(465,245,560,110,'NGINX NodePort + controller','namespace: nginx-ingress; ingress class: nginx')
-    d.box(1315,300,400,115,'AWS controllers + IAM','Load Balancer Controller; EBS CSI','purple')
-    d.box(1315,440,400,110,'Cluster networking','CNI, CoreDNS; restricted API','purple')
-    d.box(430,535,460,80,'Frontend Service + pod','Next.js :3000')
-    for x,title,body in ((110,'Auth','Service :3001 -> pod'),(395,'Projects','Service :8080 -> pod'),(680,'Tasks','Service :8081 -> pod'),(965,'Notifications','Service :8000 -> pod')):
-        d.box(x,695,260,120,title,body)
-    d.box(135,895,335,150,'PostgreSQL','Service :5432 -> pod\npostgres-data: 3Gi RWO','green')
-    d.box(500,895,335,150,'Redis','Service :6379 -> pod\nredis-data: 3Gi RWO','purple')
-    d.box(865,895,335,150,'RabbitMQ','Service :5672 -> pod\nrabbitmq-data: 3Gi RWO','orange')
-    d.box(1290,645,450,155,'Runtime configuration','taskflow-config: APP_ORIGIN\ntaskflow-secrets: credentials\nInjected through environment','neutral')
-    d.box(1290,850,450,220,'Storage and update policy','taskflow-gp3: encrypted; Retain; WaitForFirstConsumer. All eight Deployments: 1 replica + Recreate. Data pods have no replication.','green')
-    d.footer('Green: PostgreSQL writes. Purple: Redis access. Orange: RabbitMQ events. Cross-service HTTP checks appear in diagram 01 notes.',
-             'All app pods define /health and /ready probes. Current files: kubernetes/*-deployment.yaml, *-service.yaml, *-pvc.yaml.')
-
-
 def notifications():
     d=Diagram(4,'04-notification-delivery','Durable notification delivery',
               'Transactional outbox, RabbitMQ publisher confirmations and a Redis-backed activity feed.',
@@ -264,60 +193,7 @@ def notifications():
              'Redis loss or TTL expiry can remove that protection. No email, SMS, WebSocket or SQS delivery is implemented in this path.')
 
 
-def pipeline():
-    d=Diagram(5,'05-delivery-pipeline','CI and application delivery',
-              'Keep validated artifacts traceable from source commit to the eventual Kubernetes deployment.',
-              'MIXED STATUS  |  Upper flow exists in CI; the lower delivery flow is proposed')
-    d.group(60,240,1680,585,'CURRENT GITHUB ACTIONS  /  pull request, main or milestone branch, version tag, manual dispatch')
-    d.edge([(375,355),(460,355)],BLUE)
-    d.edge([(925,355),(1010,355)],BLUE)
-    d.edge([(1620,425),(1620,485),(355,485),(355,550)],GREEN)
-    d.edge([(600,635),(700,635)],GREEN)
-    d.edge([(1190,635),(1290,635)],GREEN)
-    d.box(105,300,270,125,'Source commit','Read-only CI permissions','neutral')
-    d.box(460,300,465,125,'Required source gates','Workflow lint; 5 language checks; Semgrep; Trivy repository scan')
-    d.box(1010,300,670,125,'Five production image builds','Frontend / Auth / Projects / Tasks / Notifications')
-    d.box(105,550,495,175,'Image evidence + policy','Syft SPDX SBOM; Trivy SARIF; block HIGH/CRITICAL; export scanned images','green')
-    d.box(700,550,490,175,'Full-stack integration','Load exact archives; no rebuild; smoke, isolation, Redis, hardening and restart checks','green')
-    d.box(1290,550,390,175,'Retained results','Security reports + temporary image archives; SonarQube optional','green')
-    d.group(60,875,1680,225,'PROPOSED CD  /  implement after cluster and registry prerequisites','orange')
-    for a,b in ((405,455),(850,900),(1260,1310)):
-        d.edge([(a,1000),(b,1000)],ORANGE,True)
-    d.box(105,935,300,125,'GitHub OIDC','Scoped AWS publisher role','orange')
-    d.box(455,935,395,125,'ECR image promotion','Commit SHA + digest; preserve tested artifact','orange')
-    d.box(900,935,360,125,'Deploy to Kubernetes','Private API access; scoped RBAC','orange')
-    d.box(1310,935,370,125,'Verify + promote','Rollout and smoke; production approval; rollback','orange')
-    d.footer('Current CI publishes GitHub workflow artifacts only. It does not push a registry image or deploy infrastructure.',
-             'Solid: implemented job flow. Dashed: proposed delivery. Sources: .github/workflows/ci.yml; docs/continuous-integration.md.')
-
-
-def operations():
-    d=Diagram(6,'06-platform-operations','Platform operations and recovery',
-              'Separate resource ownership, credentials, application data and cluster recovery.',
-              'PROPOSED OPERATING MODEL  |  Current local controls and remaining AWS work are recorded in the plan')
-    d.group(60,240,530,850,'PROVISION + MAINTAIN','blue')
-    d.group(635,240,530,850,'CONFIGURE + OBSERVE','purple')
-    d.group(1210,240,530,850,'BACK UP + RECOVER','green')
-    d.edge([(325,455),(325,515)],BLUE,True)
-    d.edge([(325,705),(325,765)],BLUE,True)
-    d.edge([(900,455),(900,515)],PURPLE,True)
-    d.edge([(900,705),(900,765)],PURPLE,True)
-    d.edge([(1475,455),(1475,515)],GREEN,True)
-    d.edge([(1475,705),(1475,765)],GREEN,True)
-    d.box(90,310,470,145,'Terraform foundation','VPC, subnet routes, NAT, ECR, state storage, IAM integrations; proposed')
-    d.box(90,515,470,190,'kOps cluster lifecycle','EC2 control plane and workers; etcd; cluster IAM and API endpoint. Review changes and validate after rolling updates.','blue')
-    d.box(90,765,470,230,'Workloads and addons','Plain application YAML today. Optional application Helm chart later. Give every addon one owner: kOps or Helm.','blue')
-    d.box(665,310,470,145,'Managed runtime secrets','Proposed Secrets Manager -> External Secrets Operator -> Kubernetes Secret','purple')
-    d.box(665,515,470,190,'Application configuration','ConfigMap + Secret -> environment. Restart workloads after changes; rotate actual database and broker credentials too.','purple')
-    d.box(665,765,470,230,'Metrics, logs and alerts','Proposed: application errors, readiness, outbox age, queue depth, Redis memory, nodes, etcd and backup failures.','purple')
-    d.box(1240,310,470,145,'Different recovery assets','Terraform state; kOps state; etcd backup; SQL backup; Redis and RabbitMQ recovery data','green')
-    d.box(1240,515,470,190,'Protected backup locations','Encrypted, access-restricted stores; retention and recovery objectives; independent of worker disks and PVC lifetimes','green')
-    d.box(1240,765,470,230,'Prove restoration','Restore in isolation; validate task records and notification behavior; record RPO/RTO. Retain storage is not a backup.','green')
-    d.footer('Current: ignored local .env; Kubernetes Secret template; persistent volumes; health probes; CI hardening checks.',
-             'Target: managed secrets, workload IAM, observability and tested restores. Cluster backups do not contain PostgreSQL volume data.')
-
-
 if __name__ == '__main__':
-    for build in (docker,aws,kubernetes,notifications,pipeline,operations):
+    for build in (docker, notifications):
         build()
-    print('Rendered six diagrams: 3600 x 2500 PNG plus editable SVG.')
+    print('Rendered application diagrams: 3600 x 2500 PNG plus editable SVG.')
